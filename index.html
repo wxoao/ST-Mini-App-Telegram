@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stranger Things App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Шрифты (Добавлен Permanent Marker для стены) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Benguiat+ITC&family=Cormorant+SC:wght@700&family=Inter:wght@400;600;800&family=Permanent+Marker&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --stranger-red: #ff0909;
+            --glow-core: #e71d36;
+            --upside-blue: #0044ff;
+            --dark-bg: #0e0e0e;
+            --card-bg: #151515;
+            --text-gray: #8e8e93;
+            --current-glow: var(--stranger-red);
+        }
+
+        body {
+            margin: 0; padding: 0; background-color: #000; color: white;
+            font-family: 'Inter', sans-serif; overflow-x: hidden; min-height: 100vh;
+            -webkit-tap-highlight-color: transparent; user-select: none;
+            padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
+            transition: filter 0.2s;
+        }
+
+        ::-webkit-scrollbar { display: none; }
+
+        /* CANVAS */
+        #upside-down-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; opacity: 0.6; }
+
+        /* GLITCH MODE */
+        body.glitch-mode { --current-glow: var(--upside-blue); }
+        body.glitch-mode h1, body.glitch-mode h2, body.glitch-mode h3, 
+        body.glitch-mode p, body.glitch-mode span, body.glitch-mode .stranger-font,
+        body.glitch-mode .countdown-timer {
+            transform: scaleY(-1); filter: hue-rotate(180deg) blur(0.5px);
+        }
+        /* Исключаем стену из глитча */
+        body.glitch-mode #wall-overlay { transform: none !important; filter: none !important; }
+
+        /* TEXT STYLES */
+        .stranger-font {
+            font-family: 'Benguiat ITC', serif; font-weight: 700; color: transparent;
+            -webkit-text-stroke: 1.5px var(--current-glow); text-transform: uppercase;
+            position: relative; text-align: center;
+            filter: drop-shadow(0 0 2px var(--current-glow)) drop-shadow(0 0 10px var(--current-glow));
+            transition: -webkit-text-stroke 0.1s, filter 0.1s;
+        }
+
+        /* SPLASH */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 100; background: #000;
+        }
+        .intro-container { animation: introSequence 4s cubic-bezier(0.7, 0, 0.84, 0) forwards; }
+        .splash-line-1 { font-size: 2.5rem; letter-spacing: 5px; margin-bottom: -10px; }
+        .splash-line-2 { font-size: 3rem; letter-spacing: 2px; }
+        .splash-line-3 { font-size: 4rem; letter-spacing: 8px; margin-top: -10px; }
+        .bar { width: 0%; height: 2px; background-color: var(--stranger-red); box-shadow: 0 0 10px var(--stranger-red); margin: 10px 0; animation: expandBar 2s ease-out forwards; }
+
+        /* APP STRUCTURE */
+        #main-app {
+            display: none; opacity: 0; transition: opacity 1s ease-in;
+            padding: 20px 16px 80px 16px; max-width: 600px; margin: 0 auto;
+            position: relative; z-index: 2;
+        }
+        .app-header { margin-bottom: 30px; margin-top: 10px; display: flex; justify-content: center; align-items: center; flex-direction: column; position: relative; }
+        
+        /* LOGO TRIGGER AREA */
+        .header-logo { cursor: pointer; padding: 10px; }
+        .header-logo:active { transform: scale(0.98); opacity: 0.8; transition: 0.2s; }
+
+        .header-logo .line { display: block; line-height: 0.9; }
+        .header-logo .l1 { font-size: 1.2rem; letter-spacing: 3px; }
+        .header-logo .l2 { font-size: 1.5rem; letter-spacing: 1px; }
+        .header-logo .l3 { font-size: 1.8rem; letter-spacing: 4px; margin-top: -5px; }
+
+        /* SOUND BUTTON */
+        .sound-toggle {
+            position: fixed; top: 15px; right: 15px; z-index: 101;
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(0, 0, 0, 0.6); border: 1px solid #333;
+            color: white; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; backdrop-filter: blur(4px); transition: all 0.2s;
+        }
+        .sound-toggle.muted { color: #555; border-color: #222; }
+
+        /* COUNTDOWN */
+        .countdown-banner {
+            width: 100%; border-radius: 16px; padding: 25px 20px;
+            margin-bottom: 30px; position: relative; overflow: hidden; box-sizing: border-box;
+            box-shadow: 0 10px 40px rgba(231, 29, 54, 0.15); border: 1px solid #3a0505;
+            background: radial-gradient(circle at 50% 120%, #4a0000 0%, #200000 40%, #0a0a0a 80%);
+            z-index: 5;
+        }
+        .banner-content { position: relative; z-index: 2; text-align: center; }
+        .countdown-timer { font-family: 'Inter', sans-serif; font-size: 34px; font-weight: 900; color: #fff; letter-spacing: 1px; margin: 5px 0; text-shadow: 0 0 10px rgba(255, 0, 0, 0.6); }
+        .countdown-subtext { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 5px; }
+
+        /* PLAYER */
+        .section-title { font-family: 'Inter', sans-serif; font-size: 19px; font-weight: 700; margin-bottom: 15px; color: #fff; }
+        .player-wrapper {
+            position: relative; width: 100%; background: #000;
+            border-radius: 12px; overflow: hidden; border: 1px solid #333;
+            aspect-ratio: 16 / 9; box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+        .player-wrapper video { width: 100%; height: 100%; object-fit: cover; }
+        .controls-area {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 12px; background: #111; padding: 8px 12px;
+            border-radius: 10px; border: 1px solid #222; margin-bottom: 30px;
+        }
+        .nav-btn { background: #222; border: none; color: white; width: 40px; height: 40px; border-radius: 12px; font-size: 20px; cursor: pointer; }
+
+        /* DATES & EPISODES */
+        .dates-grid { display: flex; flex-direction: column; gap: 12px; }
+        .date-card {
+            background: var(--card-bg); border-radius: 12px; padding: 14px 16px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-left: 3px solid var(--current-glow);
+            box-shadow: -4px 0 15px -5px rgba(231, 29, 54, 0.2);
+            cursor: pointer; transition: transform 0.1s, background 0.2s; position: relative; z-index: 2;
+        }
+        .date-card:active { transform: scale(0.96); background: #222; }
+        .date-info h3 { margin: 0 0 4px 0; font-size: 15px; color: white; }
+        .date-info p { margin: 0; font-size: 13px; color: var(--text-gray); }
+        .date-badge-box {
+            background: #252525; width: 50px; height: 50px; border-radius: 10px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            flex-shrink: 0; border: 1px solid #333;
+        }
+        .db-day { font-size: 18px; font-weight: 800; color: white; line-height: 1; margin-bottom: 2px; }
+        .db-month { font-size: 9px; font-weight: 700; color: #888; text-transform: uppercase; }
+        .available-text { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 12px; color: #0f0; text-shadow: 0 0 10px rgba(0, 255, 0, 0.5); letter-spacing: 1px; text-transform: uppercase; }
+
+        /* EPISODES PAGE */
+        #episodes-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 50; flex-direction: column; padding: 20px 16px; box-sizing: border-box; overflow-y: auto; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .custom-back-btn { background: transparent; border: none; color: #888; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 5px; cursor: pointer; margin-bottom: 10px; padding: 5px 0; width: fit-content; }
+        .ep-header { margin-bottom: 20px; text-align: center; border-bottom: 1px solid #333; padding-bottom: 15px; }
+        .ep-header h2 { margin: 0; font-size: 22px; color: white; }
+        .ep-header span { font-size: 12px; color: var(--current-glow); text-transform: uppercase; }
+        .episode-list { display: flex; flex-direction: column; gap: 15px; }
+        .episode-card { display: flex; align-items: center; gap: 15px; background: #111; padding: 10px; border-radius: 8px; border: 1px solid #222; }
+        .ep-preview { width: 100px; height: 60px; background: #222; border-radius: 4px; position: relative; overflow: hidden; flex-shrink: 0; }
+        .ep-preview::after { content: '▶'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #555; font-size: 20px; }
+        .ep-details { flex-grow: 1; }
+        .ep-num { font-size: 10px; color: var(--current-glow); font-weight: 700; margin-bottom: 2px; }
+        .ep-title { font-size: 14px; color: white; font-weight: 600; line-height: 1.2; margin-bottom: 4px; }
+        .ep-dur { font-size: 11px; color: #666; }
+
+        /* SUBSCRIPTION MODAL */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 150; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .modal-box {
+            background: #111; border: 1px solid var(--stranger-red); width: 85%; max-width: 320px;
+            padding: 25px; border-radius: 16px; text-align: center;
+            box-shadow: 0 0 30px rgba(255, 9, 9, 0.2); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-title { color: var(--stranger-red); font-family: 'Benguiat ITC', serif; font-size: 18px; margin-bottom: 10px; letter-spacing: 1px; }
+        .modal-text { font-size: 13px; color: #ccc; margin-bottom: 20px; line-height: 1.4; }
+        .channel-preview { background: #222; padding: 10px; border-radius: 8px; font-weight: 700; color: white; margin-bottom: 20px; border: 1px dashed #444; }
+        .modal-btn { display: block; width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: 700; margin-bottom: 10px; cursor: pointer; font-size: 14px; }
+        .btn-sub { background: #0088cc; color: white; }
+        .btn-check { background: transparent; border: 1px solid #444; color: #888; }
+
+        /* --------------------------------------------------------
+           THE WALL (EASTER EGG STYLE)
+           -------------------------------------------------------- */
+        #wall-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 300;
+            /* Обои: цветочный паттерн с виньеткой */
+            background-color: #2c2117;
+            background-image: 
+                radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.95) 100%),
+                url('https://www.transparenttextures.com/patterns/shattered-island.png'); /* Легкая текстура */
+            background-size: cover, 300px;
+            flex-direction: column; justify-content: center; align-items: center;
+            animation: fadeInWall 2s ease forwards;
+        }
+        
+        @keyframes fadeInWall { 0% { opacity: 0; } 100% { opacity: 1; } }
+
+        .wall-container {
+            position: relative; width: 90%; max-width: 400px;
+            padding: 20px 0;
+        }
+
+        /* Провода SVG */
+        #wires-svg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 1;
+        }
+        .wire-path { fill: none; stroke: #111; stroke-width: 2px; stroke-linecap: round; filter: drop-shadow(0 1px 1px rgba(255,255,255,0.1)); }
+
+        /* Ряды букв */
+        .wall-row { display: flex; justify-content: space-between; padding: 0 10px; margin-bottom: 60px; position: relative; z-index: 2; }
+        .letter-wrapper { position: relative; display: flex; flex-direction: column; align-items: center; width: 30px; }
+        
+        /* Лампочки */
+        .bulb {
+            width: 14px; height: 14px; border-radius: 50%;
+            margin-bottom: 15px; position: relative;
+            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.3);
+            transition: all 0.1s;
+            opacity: 0.4;
+        }
+        /* Цоколь лампочки */
+        .bulb::before {
+            content: ''; position: absolute; top: -4px; left: 50%; transform: translateX(-50%);
+            width: 6px; height: 6px; background: #1a1a1a; border-radius: 2px;
+        }
+
+        /* Свечение (класс active) */
+        .bulb.active {
+            opacity: 1; transform: scale(1.2);
+            filter: brightness(1.5);
+        }
+        .bulb.active::after {
+            content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 4px; height: 4px; background: #fff; border-radius: 50%; box-shadow: 0 0 4px #fff;
+        }
+
+        /* Буквы краски */
+        .wall-char {
+            font-family: 'Permanent Marker', cursive;
+            font-size: 28px; color: #000; line-height: 1;
+            transform: rotate(var(--r));
+            text-shadow: 0 0 1px rgba(0,0,0,0.5);
+        }
+
+        /* Цвета лампочек */
+        .b-red { background-color: #ff0000; border: 1px solid #880000; }
+        .b-red.active { box-shadow: 0 0 20px #ff0000, 0 0 60px #ff0000; }
+        
+        .b-blue { background-color: #0088ff; border: 1px solid #004488; }
+        .b-blue.active { box-shadow: 0 0 20px #0088ff, 0 0 60px #0088ff; }
+        
+        .b-yellow { background-color: #ffcc00; border: 1px solid #997700; }
+        .b-yellow.active { box-shadow: 0 0 20px #ffcc00, 0 0 60px #ffcc00; }
+        
+        .b-green { background-color: #00ff44; border: 1px solid #005511; }
+        .b-green.active { box-shadow: 0 0 20px #00ff44, 0 0 60px #00ff44; }
+
+        .b-pink { background-color: #ff44ff; border: 1px solid #880088; }
+        .b-pink.active { box-shadow: 0 0 20px #ff44ff, 0 0 60px #ff44ff; }
+
+        .close-wall-hint {
+            position: absolute; bottom: 30px; width: 100%; text-align: center;
+            color: rgba(255,255,255,0.3); font-size: 12px; font-family: 'Inter';
+            pointer-events: none;
+        }
+
+        /* ANIMATIONS */
+        @keyframes introSequence { 0% { opacity: 0; } 10% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
+        @keyframes expandBar { 0% { width: 0%; opacity: 0; } 50% { width: 60%; opacity: 1; } 100% { width: 80%; opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <audio id="bg-music" src="https://orangefreesounds.com/wp-content/uploads/2023/02/Creepy-grandfather-clock-sound.mp3" loop></audio>
+    <audio id="buzz-sound" src="https://www.soundjay.com/mechanical/sounds/electric-buzz-01.mp3"></audio>
+
+    <!-- SUBSCRIPTION MODAL -->
+    <div id="sub-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">ДОСТУП ОГРАНИЧЕН</div>
+            <p class="modal-text">Для просмотра эпизода необходимо подтвердить статус фаната.</p>
+            <div class="channel-preview" id="modal-chan-name">@channel</div>
+            <button class="modal-btn btn-sub" onclick="doSubscribe()">ПОДПИСАТЬСЯ</button>
+            <button class="modal-btn btn-check" onclick="checkSubscription()">Я ПОДПИСАЛСЯ</button>
+        </div>
+    </div>
+
+    <!-- WALL OVERLAY (JOYCE'S WALL) -->
+    <div id="wall-overlay" onclick="closeWall()">
+        <div class="wall-container" id="wall-container">
+            <svg id="wires-svg"></svg>
+            <!-- Letters generated by JS -->
+            <div class="wall-row" id="row-1"></div>
+            <div class="wall-row" id="row-2"></div>
+            <div class="wall-row" id="row-3"></div>
+        </div>
+        <div class="close-wall-hint">Нажми, чтобы вернуться</div>
+    </div>
+
+    <!-- SOUND BTN -->
+    <button class="sound-toggle muted" id="sound-btn" onclick="toggleSound()">
+        <svg id="icon-muted" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+        <svg id="icon-sound" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+    </button>
+
+    <canvas id="upside-down-canvas"></canvas>
+
+    <!-- SPLASH -->
+    <div id="splash-screen">
+        <div class="bar"></div>
+        <div class="intro-container">
+            <div class="stranger-font splash-line-1">ОЧЕНЬ</div>
+            <div class="stranger-font splash-line-2">СТРАННЫЕ</div>
+            <div class="stranger-font splash-line-3">ДЕЛА</div>
+        </div>
+        <div class="bar"></div>
+    </div>
+
+    <!-- EPISODES PAGE -->
+    <div id="episodes-page">
+        <button class="custom-back-btn" onclick="closePart()"><span>←</span> НАЗАД</button>
+        <div class="ep-header">
+            <span id="ep-part-subtitle">ВЫБОР ЭПИЗОДА</span>
+            <h2 id="ep-part-title">Часть 1</h2>
+        </div>
+        <div class="episode-list" id="episode-list-container"></div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="main-app">
+        <div class="app-header">
+            <!-- TRIGGER FOR WALL: ID added -->
+            <div class="header-logo stranger-font" id="logo-trigger">
+                <span class="line l1">ОЧЕНЬ</span>
+                <span class="line l2">СТРАННЫЕ</span>
+                <span class="line l3">ДЕЛА</span>
+            </div>
+        </div>
+
+        <div class="countdown-banner">
+            <div class="banner-content">
+                <div class="banner-label" id="timer-label">До премьеры 5 сезона</div>
+                <div class="countdown-timer" id="timer">00 : 00 : 00 : 00</div>
+                <div class="countdown-subtext" id="release-date-text">26 ноября 2025 • 17:00 (PT)</div>
+            </div>
+        </div>
+
+        <!-- PLAYER -->
+        <div class="section-title">Трейлеры</div>
+        <div class="player-section">
+            <div class="player-wrapper">
+                <video id="main-video" playsinline poster="https://i.ytimg.com/vi/Wbg1G2J8qVI/maxresdefault.jpg">
+                    Ваш браузер не поддерживает видео.
+                </video>
+            </div>
+            <div class="controls-area">
+                <button class="nav-btn" onclick="changeTrailer(-1)">‹</button>
+                <div style="color:#ccc; font-size:13px;" id="video-title-text">Загрузка...</div>
+                <button class="nav-btn" onclick="changeTrailer(1)">›</button>
+            </div>
+        </div>
+
+        <!-- DATES -->
+        <div class="section-title" id="schedule-title">График выхода</div>
+        <div class="dates-grid">
+            <div class="date-card" id="card-part-1" onclick="openPart(1)">
+                <div class="date-info"><h3>Часть 1 (4 серии)</h3><p>Начало конца</p></div>
+                <div class="date-badge-box" id="badge-part-1"><span class="db-day">26</span><span class="db-month">НОЯ</span></div>
+            </div>
+            <div class="date-card" id="card-part-2" onclick="openPart(2)">
+                <div class="date-info"><h3>Часть 2 (3 серии)</h3><p>Битва за Хоукинс</p></div>
+                <div class="date-badge-box" id="badge-part-2"><span class="db-day">25</span><span class="db-month">ДЕК</span></div>
+            </div>
+            <div class="date-card" id="card-part-3" onclick="openPart(3)">
+                <div class="date-info"><h3>Часть 3 (1 серия)</h3><p>Финал истории</p></div>
+                <div class="date-badge-box" id="badge-part-3"><span class="db-day">31</span><span class="db-month">ДЕК</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand(); tg.setHeaderColor('#000000'); tg.setBackgroundColor('#000000');
+        function vibration() { if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); }
+
+        // --- КОНФИГУРАЦИЯ И АВТОМАТИЧЕСКАЯ СМЕНА КАНАЛОВ ---
+        
+        // 1. Список каналов для ротации (по очереди каждый день)
+        const opChannels = [
+            "strangerthingsfiveseason",
+            "stranger_things_5_seasons",
+            "strangerthingsnewseasons",
+            "StrangerThings_fiveseason",
+            "StrangerThings5newseason"
+        ];
+        
+        // 2. Логика выбора канала: (ДнейСНачалаВремен % КоличествоКаналов)
+        const todayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
+        const currentAutoChannel = opChannels[todayIndex % opChannels.length];
+
+        // 3. Основной конфиг
+        const config = {
+            requiredChannel: currentAutoChannel, // Сюда автоматически подставится канал на сегодня
+            
+            epLinks: {
+                1: "https://t.me/ExceedClient/198", 
+                2: "", 3: "", 4: "", 5: "", 6: "", 7: "", 8: ""
+            },
+            trailerLinks: [
+                "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+                "https://upload.wikimedia.org/wikipedia/commons/transcoded/a/a4/BBH_gravitational_lensing_of_accretion_disk_simulation.webm/BBH_gravitational_lensing_of_accretion_disk_simulation.webm.480p.vp9.webm"
+            ]
+        };
+        
+        // Для отладки можно посмотреть в консоли какой канал выбран сегодня
+        console.log("Сегодняшний канал для подписки:", config.requiredChannel);
+
+        // --- INIT ---
+        const splash = document.getElementById('splash-screen');
+        const app = document.getElementById('main-app');
+        const epPage = document.getElementById('episodes-page');
+
+        setTimeout(() => {
+            splash.style.display = 'none'; app.style.display = 'block';
+            setTimeout(() => app.style.opacity = '1', 50);
+            tg.ready(); checkDates(); applyConfig(); setupWall();
+            document.body.addEventListener('click', initAudioContext, { once: true });
+        }, 3800);
+
+        // --- AUDIO ---
+        const bgAudio = document.getElementById('bg-music');
+        const buzzAudio = document.getElementById('buzz-sound');
+        const soundBtn = document.getElementById('sound-btn');
+        const iconMuted = document.getElementById('icon-muted');
+        const iconSound = document.getElementById('icon-sound');
+        let isMuted = true; bgAudio.volume = 0.15; buzzAudio.volume = 0.4;
+        
+        function initAudioContext() { }
+        function toggleSound() {
+            vibration(); isMuted = !isMuted;
+            if (isMuted) { bgAudio.pause(); soundBtn.classList.add('muted'); iconMuted.style.display='block'; iconSound.style.display='none'; }
+            else { bgAudio.play().catch(e=>{}); soundBtn.classList.remove('muted'); iconMuted.style.display='none'; iconSound.style.display='block'; }
+        }
+        function playBuzz() {
+            if(isMuted) return;
+            buzzAudio.currentTime = 0;
+            buzzAudio.play().catch(e=>{});
+        }
+
+        // --- WALL EASTER EGG LOGIC ---
+        const wallOverlay = document.getElementById('wall-overlay');
+        const logoTrigger = document.getElementById('logo-trigger');
+        const wiresSvg = document.getElementById('wires-svg');
+        let pressTimer;
+        let wallBuilt = false;
+        let messageTimeouts = [];
+
+        // Обработка долгого нажатия
+        logoTrigger.addEventListener('mousedown', startPress);
+        logoTrigger.addEventListener('touchstart', startPress);
+        logoTrigger.addEventListener('mouseup', endPress);
+        logoTrigger.addEventListener('touchend', endPress);
+        logoTrigger.addEventListener('mouseleave', endPress);
+
+        function startPress(e) {
+            pressTimer = setTimeout(() => {
+                openWall();
+            }, 1200); // 1.2 секунды удержания
+        }
+        function endPress(e) { clearTimeout(pressTimer); }
+
+        function setupWall() {
+            if(wallBuilt) return;
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const rows = [
+                alphabet.slice(0, 8),  // A-H
+                alphabet.slice(8, 17), // I-Q
+                alphabet.slice(17)     // R-Z
+            ];
+            const colors = ['b-red', 'b-blue', 'b-yellow', 'b-green', 'b-pink'];
+
+            rows.forEach((rowChars, idx) => {
+                const rowEl = document.getElementById(`row-${idx+1}`);
+                rowChars.split('').forEach(char => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'letter-wrapper';
+                    wrapper.id = `char-${char}`;
+                    
+                    const colorClass = colors[Math.floor(Math.random() * colors.length)];
+                    const rotation = Math.floor(Math.random() * 20) - 10; // Random tilt -10 to 10
+                    
+                    wrapper.innerHTML = `
+                        <div class="bulb ${colorClass}"></div>
+                        <div class="wall-char" style="--r: ${rotation}deg">${char}</div>
+                    `;
+                    rowEl.appendChild(wrapper);
+                });
+            });
+            wallBuilt = true;
+        }
+
+        function drawWires() {
+            // Рисуем провода после того как стена стала видимой (чтобы координаты были верные)
+            wiresSvg.innerHTML = '';
+            const bulbs = document.querySelectorAll('.bulb');
+            let pathD = "";
+            let prevX, prevY;
+
+            const containerRect = document.getElementById('wall-container').getBoundingClientRect();
+
+            bulbs.forEach((bulb, index) => {
+                const rect = bulb.getBoundingClientRect();
+                // Координаты относительно контейнера стены
+                const x = rect.left + rect.width/2 - containerRect.left;
+                const y = rect.top + rect.height/2 - containerRect.top;
+
+                if (index === 0) {
+                    pathD += `M ${x} ${y} `;
+                } else {
+                    // Кривая Безье для провисания провода
+                    const cX = (prevX + x) / 2;
+                    const cY = Math.max(prevY, y) + 20 + Math.random()*10; // Провисание
+                    pathD += `Q ${cX} ${cY}, ${x} ${y} `;
+                }
+                prevX = x; prevY = y;
+            });
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", pathD);
+            path.setAttribute("class", "wire-path");
+            wiresSvg.appendChild(path);
+        }
+
+        function openWall() {
+            vibration();
+            if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            wallOverlay.style.display = 'flex';
+            bgAudio.volume = 0.05; // Приглушаем музыку
+            
+            // Даем браузеру отрисовать flex чтобы получить координаты для проводов
+            setTimeout(() => {
+                drawWires();
+                startMessageSequence("newermind");
+            }, 500);
+        }
+
+        function closeWall() {
+            wallOverlay.style.display = 'none';
+            messageTimeouts.forEach(t => clearTimeout(t));
+            document.querySelectorAll('.bulb').forEach(b => b.classList.remove('active'));
+            bgAudio.volume = 0.15;
+        }
+
+        function startMessageSequence(text) {
+            const chars = text.toUpperCase().split('');
+            let delay = 1000;
+
+            chars.forEach((char) => {
+                const wrapper = document.getElementById(`char-${char}`);
+                if (wrapper) {
+                    const bulb = wrapper.querySelector('.bulb');
+                    
+                    // Включаем
+                    messageTimeouts.push(setTimeout(() => {
+                        bulb.classList.add('active');
+                        playBuzz();
+                        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+                    }, delay));
+
+                    // Выключаем
+                    messageTimeouts.push(setTimeout(() => {
+                        bulb.classList.remove('active');
+                    }, delay + 800));
+
+                    delay += 1200; // Пауза между буквами
+                }
+            });
+        }
+
+        // --- DATES & CONFIG STUFF ---
+        const targetGlobal = new Date("2025-11-26T17:00:00-08:00");
+        document.getElementById('release-date-text').innerText = targetGlobal.toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) + " (Ваше время)";
+
+        let activeTrailers = [];
+        function applyConfig() {
+            if (config.trailerLinks && config.trailerLinks.length > 0) {
+                activeTrailers = config.trailerLinks.map((url, idx) => ({ src: url, title: `Trailer #${idx + 1}` }));
+            } else activeTrailers = [];
+            if(activeTrailers.length > 0) { currentIdx = 0; loadTrailer(0); }
+            else document.getElementById('video-title-text').innerText = "Трейлеров нет";
+        }
+
+        // --- SUBSCRIPTION ---
+        let pendingEpId = null; 
+        function checkSubRequirement(epId) {
+            if (!config.requiredChannel) return true; 
+            pendingEpId = epId;
+            document.getElementById('modal-chan-name').innerText = "@" + config.requiredChannel;
+            document.getElementById('sub-modal').style.display = 'flex';
+            return false;
+        }
+        function doSubscribe() { vibration(); tg.openTelegramLink("https://t.me/" + config.requiredChannel); }
+        function checkSubscription() {
+            vibration(); document.getElementById('sub-modal').style.display = 'none';
+            if (pendingEpId) playEpisodeVideo(pendingEpId); pendingEpId = null;
+        }
+        function playEpisodeVideo(epId) {
+            closePart();
+            const url = config.epLinks[epId];
+            if(url) {
+                if(url.includes('t.me')) tg.openTelegramLink(url);
+                else {
+                    document.querySelector('.section-title').scrollIntoView({behavior: 'smooth'});
+                    videoEl.src = url; titleText.innerText = `Эпизод ${epId}`; videoEl.play();
+                }
+            } else alert(`Видео для Эпизода ${epId} еще не загружено.`);
+        }
+
+        // --- PLAYER ---
+        let currentIdx = 0;
+        const videoEl = document.getElementById('main-video');
+        const titleText = document.getElementById('video-title-text');
+        function loadTrailer(index) {
+            if (activeTrailers.length === 0) return;
+            const vid = activeTrailers[index];
+            videoEl.src = vid.src; titleText.innerText = vid.title; videoEl.pause();
+        }
+        function changeTrailer(direction) {
+            vibration(); if (activeTrailers.length === 0) return;
+            currentIdx += direction;
+            if (currentIdx < 0) currentIdx = activeTrailers.length - 1;
+            if (currentIdx >= activeTrailers.length) currentIdx = 0;
+            loadTrailer(currentIdx);
+        }
+        videoEl.addEventListener('play', () => { if(!isMuted) { let v=0.15; const f=setInterval(()=>{if(v>0.01){v-=0.02;bgAudio.volume=v;}else{bgAudio.pause();clearInterval(f);}},100); } });
+        videoEl.addEventListener('pause', () => { if(!isMuted){bgAudio.play();bgAudio.volume=0.15;} });
+        videoEl.addEventListener('ended', () => { if(!isMuted){bgAudio.play();bgAudio.volume=0.15;} });
+
+        // --- GLITCH & PARTICLES ---
+        setInterval(() => { document.body.classList.add('glitch-mode'); if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('warning'); setTimeout(()=>document.body.classList.remove('glitch-mode'),400); }, 60000);
+        
+        const canvas = document.getElementById('upside-down-canvas'), ctx = canvas.getContext('2d');
+        let particlesArray; canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+        class Particle {
+            constructor(){this.x=Math.random()*canvas.width;this.y=Math.random()*canvas.height;this.size=Math.random()*2;this.speedX=(Math.random()*1)-0.5;this.speedY=(Math.random()*1)-0.2;this.opacity=Math.random()*0.5+0.1;}
+            update(){this.x+=this.speedX;this.y+=this.speedY;if(this.x>canvas.width)this.x=0;if(this.x<0)this.x=canvas.width;if(this.y>canvas.height)this.y=0;if(this.y<0)this.y=canvas.height;}
+            draw(){ctx.fillStyle=`rgba(200,210,220,${this.opacity})`;ctx.beginPath();ctx.arc(this.x,this.y,this.size,0,Math.PI*2);ctx.fill();}
+        }
+        function initP(){particlesArray=[];const n=(canvas.width*canvas.height)/6000;for(let i=0;i<n;i++)particlesArray.push(new Particle());}
+        function animP(){ctx.clearRect(0,0,canvas.width,canvas.height);for(let i=0;i<particlesArray.length;i++){particlesArray[i].update();particlesArray[i].draw();}requestAnimationFrame(animP);}
+        window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;initP();});initP();animP();
+
+        const dates = { 1: new Date(2025,10,26,17,0,0), 2: new Date(2025,11,25,17,0,0), 3: new Date(2025,11,31,17,0,0) };
+        function checkDates() {
+            const now = new Date();
+            if(now>=dates[1]){ document.getElementById("schedule-title").innerText="Смотреть"; document.getElementById("timer-label").innerText="ПРЕМЬЕРА СОСТОЯЛАСЬ"; document.getElementById("timer").innerHTML="СМОТРИТЕ СЕЙЧАС"; }
+            for(let i=1;i<=3;i++){ if(now>=dates[i]){ const b=document.getElementById(`badge-part-${i}`); if(b)b.outerHTML=`<div class="available-text">ДОСТУПНО</div>`; } }
+        }
+        function updateTimer(){
+            const now=new Date().getTime(), dist=dates[1].getTime()-now;
+            if(dist<0){checkDates();return;}
+            const d=Math.floor(dist/(1000*60*60*24)), h=Math.floor((dist%(1000*60*60*24))/(1000*60*60)), m=Math.floor((dist%(1000*60*60))/(1000*60));
+            document.getElementById("timer").innerHTML=`${d}:${h<10?'0'+h:h}:${m<10?'0'+m:m}:${Math.floor((dist%(1000*60))/1000)<10?'0'+Math.floor((dist%(1000*60))/1000):Math.floor((dist%(1000*60))/1000)}`;
+        } setInterval(updateTimer,1000); updateTimer();
+
+        const seasonData = {
+            1: { title: "ЧАСТЬ 1: НАЧАЛО", offset: 0, episodes: [ { name: "Глава 1: Ползание", duration: "55 мин" }, { name: "Глава 2: Исчезновение...", duration: "60 мин" }, { name: "Глава 3: Ловушка Тернбоу", duration: "58 мин" }, { name: "Глава 4: Колдун", duration: "65 мин" } ] },
+            2: { title: "ЧАСТЬ 2: БИТВА", offset: 4, episodes: [ { name: "Глава 5: Шоковая терапия", duration: "62 мин" }, { name: "Глава 6: Побег из Камазотц", duration: "70 мин" }, { name: "Глава 7: Мост", duration: "75 мин" } ] },
+            3: { title: "ЧАСТЬ 3: ФИНАЛ", offset: 7, episodes: [ { name: "Глава 8: Правая сторона", duration: "150 мин (Фильм)" } ] }
+        };
+        function openPart(partId) {
+            vibration(); const now = new Date(); const data = seasonData[partId];
+            document.getElementById('ep-part-title').innerText = data.title;
+            const listContainer = document.getElementById('episode-list-container'); listContainer.innerHTML = ''; 
+            data.episodes.forEach((ep, index) => {
+                const card = document.createElement('div'); card.className = 'episode-card';
+                const globalEpId = data.offset + index + 1;
+                card.onclick = () => { vibration(); if (now < dates[partId]) alert('Этот эпизод еще не вышел!'); else if (checkSubRequirement(globalEpId)) playEpisodeVideo(globalEpId); };
+                card.innerHTML = `<div class="ep-preview"></div><div class="ep-details"><div class="ep-num">ЭПИЗОД ${globalEpId}</div><div class="ep-title">${ep.name}</div><div class="ep-dur">${ep.duration}</div></div>`;
+                listContainer.appendChild(card);
+            });
+            app.style.display = 'none'; epPage.style.display = 'flex'; tg.BackButton.show(); tg.BackButton.onClick(closePart);
+        }
+        function closePart() { vibration(); epPage.style.display = 'none'; app.style.display = 'block'; tg.BackButton.hide(); tg.BackButton.offClick(closePart); }
+    </script>
+</body>
+</html>
