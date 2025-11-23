@@ -388,6 +388,7 @@ body {
 
     <script>
         const tg = window.Telegram.WebApp;
+        tg.ready();
         tg.expand(); tg.setHeaderColor('#000000'); tg.setBackgroundColor('#000000');
         function vibration() { if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); }
 
@@ -431,7 +432,7 @@ body {
         setTimeout(() => {
             splash.style.display = 'none'; app.style.display = 'block';
             setTimeout(() => app.style.opacity = '1', 50);
-            tg.ready(); checkDates(); applyConfig(); setupWall();
+            checkDates(); applyConfig(); setupWall();
             document.body.addEventListener('click', initAudioContext, { once: true });
         }, 3800);
 
