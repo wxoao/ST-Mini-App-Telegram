@@ -6,7 +6,6 @@
     <title>Stranger Things App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
-    <!-- Шрифты (Добавлен Permanent Marker для стены) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Benguiat+ITC&family=Cormorant+SC:wght@700&family=Inter:wght@400;600;800&family=Permanent+Marker&display=swap" rel="stylesheet">
@@ -22,22 +21,14 @@
             --current-glow: var(--stranger-red);
         }
 
-body {
-    margin: 0; padding: 0; background-color: #000; color: white;
-    font-family: 'Inter', sans-serif; overflow-x: hidden; min-height: 100vh;
-    -webkit-tap-highlight-color: transparent;
-    
-    /* --- БЛОК ЗАПРЕТА ВЫДЕЛЕНИЯ --- */
-    -webkit-touch-callout: none; /* Отключает меню при долгом нажатии на iOS */
-    -webkit-user-select: none;   /* Для Safari и Chrome на iOS */
-    -moz-user-select: none;      /* Для Firefox */
-    -ms-user-select: none;       /* Для Internet Explorer/Edge */
-    user-select: none;           /* Стандарт */
-    /* ----------------------------- */
-
-    padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
-    transition: filter 0.2s;
-}
+        body {
+            margin: 0; padding: 0; background-color: #000; color: white;
+            font-family: 'Inter', sans-serif; overflow-x: hidden; min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+            padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
+            transition: filter 0.2s;
+        }
 
         ::-webkit-scrollbar { display: none; }
 
@@ -51,7 +42,6 @@ body {
         body.glitch-mode .countdown-timer {
             transform: scaleY(-1); filter: hue-rotate(180deg) blur(0.5px);
         }
-        /* Исключаем стену из глитча */
         body.glitch-mode #wall-overlay { transform: none !important; filter: none !important; }
 
         /* TEXT STYLES */
@@ -83,10 +73,8 @@ body {
         }
         .app-header { margin-bottom: 30px; margin-top: 10px; display: flex; justify-content: center; align-items: center; flex-direction: column; position: relative; }
         
-        /* LOGO TRIGGER AREA */
         .header-logo { cursor: pointer; padding: 10px; }
         .header-logo:active { transform: scale(0.98); opacity: 0.8; transition: 0.2s; }
-
         .header-logo .line { display: block; line-height: 0.9; }
         .header-logo .l1 { font-size: 1.2rem; letter-spacing: 3px; }
         .header-logo .l2 { font-size: 1.5rem; letter-spacing: 1px; }
@@ -114,14 +102,26 @@ body {
         .countdown-timer { font-family: 'Inter', sans-serif; font-size: 34px; font-weight: 900; color: #fff; letter-spacing: 1px; margin: 5px 0; text-shadow: 0 0 10px rgba(255, 0, 0, 0.6); }
         .countdown-subtext { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 5px; }
 
-        /* PLAYER */
+        /* PLAYER STYLES (FIXED) */
         .section-title { font-family: 'Inter', sans-serif; font-size: 19px; font-weight: 700; margin-bottom: 15px; color: #fff; }
+        
         .player-wrapper {
-            position: relative; width: 100%; background: #000;
+            position: relative; width: 100%; 
+            background-color: #000; /* ЧЕРНЫЙ ФОН ВМЕСТО СЕРОГО */
             border-radius: 12px; overflow: hidden; border: 1px solid #333;
             aspect-ratio: 16 / 9; box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            background-size: cover; background-position: center;
+            cursor: pointer; 
         }
-        .player-wrapper video { width: 100%; height: 100%; object-fit: cover; }
+        .play-overlay {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 60px; height: 60px; background: rgba(227, 29, 54, 0.8);
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 24px; color: white; border: 2px solid white;
+            box-shadow: 0 0 20px rgba(227, 29, 54, 0.6); transition: 0.2s;
+        }
+        .player-wrapper:active .play-overlay { transform: translate(-50%, -50%) scale(0.9); }
+        
         .controls-area {
             display: flex; justify-content: space-between; align-items: center;
             margin-top: 12px; background: #111; padding: 8px 12px;
@@ -185,104 +185,54 @@ body {
         .btn-sub { background: #0088cc; color: white; }
         .btn-check { background: transparent; border: 1px solid #444; color: #888; }
 
-        /* --------------------------------------------------------
-           THE WALL (EASTER EGG STYLE)
-           -------------------------------------------------------- */
+        /* THE WALL */
         #wall-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 300;
-            /* Обои: цветочный паттерн с виньеткой */
             background-color: #2c2117;
             background-image: 
                 radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.95) 100%),
-                url('https://www.transparenttextures.com/patterns/shattered-island.png'); /* Легкая текстура */
+                url('https://www.transparenttextures.com/patterns/shattered-island.png');
             background-size: cover, 300px;
             flex-direction: column; justify-content: center; align-items: center;
             animation: fadeInWall 2s ease forwards;
         }
-        
         @keyframes fadeInWall { 0% { opacity: 0; } 100% { opacity: 1; } }
 
-        .wall-container {
-            position: relative; width: 90%; max-width: 400px;
-            padding: 20px 0;
-        }
-
-        /* Провода SVG */
-        #wires-svg {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 1;
-        }
+        .wall-container { position: relative; width: 90%; max-width: 400px; padding: 20px 0; }
+        #wires-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
         .wire-path { fill: none; stroke: #111; stroke-width: 2px; stroke-linecap: round; filter: drop-shadow(0 1px 1px rgba(255,255,255,0.1)); }
-
-        /* Ряды букв */
         .wall-row { display: flex; justify-content: space-between; padding: 0 10px; margin-bottom: 60px; position: relative; z-index: 2; }
         .letter-wrapper { position: relative; display: flex; flex-direction: column; align-items: center; width: 30px; }
-        
-        /* Лампочки */
         .bulb {
             width: 14px; height: 14px; border-radius: 50%;
             margin-bottom: 15px; position: relative;
-            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.3);
-            transition: all 0.1s;
-            opacity: 0.4;
+            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.3); transition: all 0.1s; opacity: 0.4;
         }
-        /* Цоколь лампочки */
-        .bulb::before {
-            content: ''; position: absolute; top: -4px; left: 50%; transform: translateX(-50%);
-            width: 6px; height: 6px; background: #1a1a1a; border-radius: 2px;
-        }
+        .bulb::before { content: ''; position: absolute; top: -4px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; background: #1a1a1a; border-radius: 2px; }
+        .bulb.active { opacity: 1; transform: scale(1.2); filter: brightness(1.5); }
+        .bulb.active::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 4px; height: 4px; background: #fff; border-radius: 50%; box-shadow: 0 0 4px #fff; }
+        .wall-char { font-family: 'Permanent Marker', cursive; font-size: 28px; color: #000; line-height: 1; transform: rotate(var(--r)); text-shadow: 0 0 1px rgba(0,0,0,0.5); }
 
-        /* Свечение (класс active) */
-        .bulb.active {
-            opacity: 1; transform: scale(1.2);
-            filter: brightness(1.5);
-        }
-        .bulb.active::after {
-            content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 4px; height: 4px; background: #fff; border-radius: 50%; box-shadow: 0 0 4px #fff;
-        }
-
-        /* Буквы краски */
-        .wall-char {
-            font-family: 'Permanent Marker', cursive;
-            font-size: 28px; color: #000; line-height: 1;
-            transform: rotate(var(--r));
-            text-shadow: 0 0 1px rgba(0,0,0,0.5);
-        }
-
-        /* Цвета лампочек */
         .b-red { background-color: #ff0000; border: 1px solid #880000; }
         .b-red.active { box-shadow: 0 0 20px #ff0000, 0 0 60px #ff0000; }
-        
         .b-blue { background-color: #0088ff; border: 1px solid #004488; }
         .b-blue.active { box-shadow: 0 0 20px #0088ff, 0 0 60px #0088ff; }
-        
         .b-yellow { background-color: #ffcc00; border: 1px solid #997700; }
         .b-yellow.active { box-shadow: 0 0 20px #ffcc00, 0 0 60px #ffcc00; }
-        
         .b-green { background-color: #00ff44; border: 1px solid #005511; }
         .b-green.active { box-shadow: 0 0 20px #00ff44, 0 0 60px #00ff44; }
-
         .b-pink { background-color: #ff44ff; border: 1px solid #880088; }
         .b-pink.active { box-shadow: 0 0 20px #ff44ff, 0 0 60px #ff44ff; }
+        .close-wall-hint { position: absolute; bottom: 30px; width: 100%; text-align: center; color: rgba(255,255,255,0.3); font-size: 12px; font-family: 'Inter'; pointer-events: none; }
 
-        .close-wall-hint {
-            position: absolute; bottom: 30px; width: 100%; text-align: center;
-            color: rgba(255,255,255,0.3); font-size: 12px; font-family: 'Inter';
-            pointer-events: none;
-        }
-
-        /* ANIMATIONS */
         @keyframes introSequence { 0% { opacity: 0; } 10% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
         @keyframes expandBar { 0% { width: 0%; opacity: 0; } 50% { width: 60%; opacity: 1; } 100% { width: 80%; opacity: 0; } }
     </style>
 </head>
 <body>
-
     <audio id="bg-music" src="https://orangefreesounds.com/wp-content/uploads/2023/02/Creepy-grandfather-clock-sound.mp3" loop></audio>
     <audio id="buzz-sound" src="https://www.soundjay.com/mechanical/sounds/electric-buzz-01.mp3"></audio>
 
-    <!-- SUBSCRIPTION MODAL -->
     <div id="sub-modal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-title">ДОСТУП ОГРАНИЧЕН</div>
@@ -293,11 +243,9 @@ body {
         </div>
     </div>
 
-    <!-- WALL OVERLAY (JOYCE'S WALL) -->
     <div id="wall-overlay" onclick="closeWall()">
         <div class="wall-container" id="wall-container">
             <svg id="wires-svg"></svg>
-            <!-- Letters generated by JS -->
             <div class="wall-row" id="row-1"></div>
             <div class="wall-row" id="row-2"></div>
             <div class="wall-row" id="row-3"></div>
@@ -305,7 +253,6 @@ body {
         <div class="close-wall-hint">Нажми, чтобы вернуться</div>
     </div>
 
-    <!-- SOUND BTN -->
     <button class="sound-toggle muted" id="sound-btn" onclick="toggleSound()">
         <svg id="icon-muted" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
         <svg id="icon-sound" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
@@ -313,7 +260,6 @@ body {
 
     <canvas id="upside-down-canvas"></canvas>
 
-    <!-- SPLASH -->
     <div id="splash-screen">
         <div class="bar"></div>
         <div class="intro-container">
@@ -324,7 +270,6 @@ body {
         <div class="bar"></div>
     </div>
 
-    <!-- EPISODES PAGE -->
     <div id="episodes-page">
         <button class="custom-back-btn" onclick="closePart()"><span>←</span> НАЗАД</button>
         <div class="ep-header">
@@ -334,10 +279,8 @@ body {
         <div class="episode-list" id="episode-list-container"></div>
     </div>
 
-    <!-- MAIN APP -->
     <div id="main-app">
         <div class="app-header">
-            <!-- TRIGGER FOR WALL: ID added -->
             <div class="header-logo stranger-font" id="logo-trigger">
                 <span class="line l1">ОЧЕНЬ</span>
                 <span class="line l2">СТРАННЫЕ</span>
@@ -353,13 +296,11 @@ body {
             </div>
         </div>
 
-        <!-- PLAYER -->
+        <!-- NEW PLAYER TRIGGER (IMAGE INSTEAD OF VIDEO) -->
         <div class="section-title">Трейлеры</div>
         <div class="player-section">
-            <div class="player-wrapper">
-                <video id="main-video" playsinline poster="https://i.ytimg.com/vi/Wbg1G2J8qVI/maxresdefault.jpg">
-                    Ваш браузер не поддерживает видео.
-                </video>
+            <div class="player-wrapper" id="player-trigger" onclick="playCurrentTrailer()">
+                <div class="play-overlay">▶</div>
             </div>
             <div class="controls-area">
                 <button class="nav-btn" onclick="changeTrailer(-1)">‹</button>
@@ -368,7 +309,6 @@ body {
             </div>
         </div>
 
-        <!-- DATES -->
         <div class="section-title" id="schedule-title">График выхода</div>
         <div class="dates-grid">
             <div class="date-card" id="card-part-1" onclick="openPart(1)">
@@ -392,9 +332,6 @@ body {
         tg.expand(); tg.setHeaderColor('#000000'); tg.setBackgroundColor('#000000');
         function vibration() { if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); }
 
-        // --- КОНФИГУРАЦИЯ И АВТОМАТИЧЕСКАЯ СМЕНА КАНАЛОВ ---
-        
-        // 1. Список каналов для ротации (по очереди каждый день)
         const opChannels = [
             "strangerthingsfiveseason",
             "stranger_things_5_seasons",
@@ -403,28 +340,34 @@ body {
             "StrangerThings5newseason"
         ];
         
-        // 2. Логика выбора канала: (ДнейСНачалаВремен % КоличествоКаналов)
         const todayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
         const currentAutoChannel = opChannels[todayIndex % opChannels.length];
 
-        // 3. Основной конфиг
         const config = {
-            requiredChannel: currentAutoChannel, // Сюда автоматически подставится канал на сегодня
+            requiredChannel: currentAutoChannel,
             
             epLinks: {
                 1: "https://t.me/ExceedClient/198", 
                 2: "", 3: "", 4: "", 5: "", 6: "", 7: "", 8: ""
             },
             trailerLinks: [
-                "https://www.dropbox.com/scl/fi/r3n78ogqoo82lzagpolld/Stranger-Things-5-_-Official-Trailer-_-Netflix.mp4?rlkey=mznjrjiwnidxbn9w4talzjyeb&st=6zeljb6o&raw=1",
-                "https://t.me/strangerthingsfiveseason/5"
+                {
+                    title: "Трейлер 5 сезона (Тизер)",
+                    // НОВАЯ КРАСИВАЯ КАРТИНКА (ОФИЦИАЛЬНОЕ ЛОГО НА ЧЕРНОМ)
+                    poster: "https://images.ctfassets.net/4cd45et68cgf/5QQ9QVyTXgnYGTdrnrJLcd/318041d404d528b846e6a39433436322/Stranger_Things_Season_5_Logo.jpg",
+                    link: "https://t.me/strangerthingsfiveseason/5"
+                },
+                {
+                    title: "Видео со съемок",
+                    // ЕЩЕ ОДНА КАЧЕСТВЕННАЯ КАРТИНКА
+                    poster: "https://d13ezvd6yrslxm.cloudfront.net/wp/wp-content/images/stranger-things-season-5-poster-700x394.jpg",
+                    link: "https://t.me/strangerthingsfiveseason" 
+                }
             ]
         };
         
-        // Для отладки можно посмотреть в консоли какой канал выбран сегодня
         console.log("Сегодняшний канал для подписки:", config.requiredChannel);
 
-        // --- INIT ---
         const splash = document.getElementById('splash-screen');
         const app = document.getElementById('main-app');
         const epPage = document.getElementById('episodes-page');
@@ -436,7 +379,6 @@ body {
             document.body.addEventListener('click', initAudioContext, { once: true });
         }, 3800);
 
-        // --- AUDIO ---
         const bgAudio = document.getElementById('bg-music');
         const buzzAudio = document.getElementById('buzz-sound');
         const soundBtn = document.getElementById('sound-btn');
@@ -456,7 +398,6 @@ body {
             buzzAudio.play().catch(e=>{});
         }
 
-        // --- WALL EASTER EGG LOGIC ---
         const wallOverlay = document.getElementById('wall-overlay');
         const logoTrigger = document.getElementById('logo-trigger');
         const wiresSvg = document.getElementById('wires-svg');
@@ -464,28 +405,19 @@ body {
         let wallBuilt = false;
         let messageTimeouts = [];
 
-        // Обработка долгого нажатия
         logoTrigger.addEventListener('mousedown', startPress);
         logoTrigger.addEventListener('touchstart', startPress);
         logoTrigger.addEventListener('mouseup', endPress);
         logoTrigger.addEventListener('touchend', endPress);
         logoTrigger.addEventListener('mouseleave', endPress);
 
-        function startPress(e) {
-            pressTimer = setTimeout(() => {
-                openWall();
-            }, 1200); // 1.2 секунды удержания
-        }
+        function startPress(e) { pressTimer = setTimeout(() => { openWall(); }, 1200); }
         function endPress(e) { clearTimeout(pressTimer); }
 
         function setupWall() {
             if(wallBuilt) return;
             const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            const rows = [
-                alphabet.slice(0, 8),  // A-H
-                alphabet.slice(8, 17), // I-Q
-                alphabet.slice(17)     // R-Z
-            ];
+            const rows = [ alphabet.slice(0, 8), alphabet.slice(8, 17), alphabet.slice(17) ];
             const colors = ['b-red', 'b-blue', 'b-yellow', 'b-green', 'b-pink'];
 
             rows.forEach((rowChars, idx) => {
@@ -494,14 +426,9 @@ body {
                     const wrapper = document.createElement('div');
                     wrapper.className = 'letter-wrapper';
                     wrapper.id = `char-${char}`;
-                    
                     const colorClass = colors[Math.floor(Math.random() * colors.length)];
-                    const rotation = Math.floor(Math.random() * 20) - 10; // Random tilt -10 to 10
-                    
-                    wrapper.innerHTML = `
-                        <div class="bulb ${colorClass}"></div>
-                        <div class="wall-char" style="--r: ${rotation}deg">${char}</div>
-                    `;
+                    const rotation = Math.floor(Math.random() * 20) - 10;
+                    wrapper.innerHTML = `<div class="bulb ${colorClass}"></div><div class="wall-char" style="--r: ${rotation}deg">${char}</div>`;
                     rowEl.appendChild(wrapper);
                 });
             });
@@ -509,34 +436,24 @@ body {
         }
 
         function drawWires() {
-            // Рисуем провода после того как стена стала видимой (чтобы координаты были верные)
             wiresSvg.innerHTML = '';
             const bulbs = document.querySelectorAll('.bulb');
-            let pathD = "";
-            let prevX, prevY;
-
+            let pathD = ""; let prevX, prevY;
             const containerRect = document.getElementById('wall-container').getBoundingClientRect();
-
             bulbs.forEach((bulb, index) => {
                 const rect = bulb.getBoundingClientRect();
-                // Координаты относительно контейнера стены
                 const x = rect.left + rect.width/2 - containerRect.left;
                 const y = rect.top + rect.height/2 - containerRect.top;
-
-                if (index === 0) {
-                    pathD += `M ${x} ${y} `;
-                } else {
-                    // Кривая Безье для провисания провода
+                if (index === 0) pathD += `M ${x} ${y} `;
+                else {
                     const cX = (prevX + x) / 2;
-                    const cY = Math.max(prevY, y) + 20 + Math.random()*10; // Провисание
+                    const cY = Math.max(prevY, y) + 20 + Math.random()*10;
                     pathD += `Q ${cX} ${cY}, ${x} ${y} `;
                 }
                 prevX = x; prevY = y;
             });
-
             const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            path.setAttribute("d", pathD);
-            path.setAttribute("class", "wire-path");
+            path.setAttribute("d", pathD); path.setAttribute("class", "wire-path");
             wiresSvg.appendChild(path);
         }
 
@@ -544,13 +461,8 @@ body {
             vibration();
             if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             wallOverlay.style.display = 'flex';
-            bgAudio.volume = 0.05; // Приглушаем музыку
-            
-            // Даем браузеру отрисовать flex чтобы получить координаты для проводов
-            setTimeout(() => {
-                drawWires();
-                startMessageSequence("newermind");
-            }, 500);
+            bgAudio.volume = 0.05;
+            setTimeout(() => { drawWires(); startMessageSequence("newermind"); }, 500);
         }
 
         function closeWall() {
@@ -563,43 +475,61 @@ body {
         function startMessageSequence(text) {
             const chars = text.toUpperCase().split('');
             let delay = 1000;
-
             chars.forEach((char) => {
                 const wrapper = document.getElementById(`char-${char}`);
                 if (wrapper) {
                     const bulb = wrapper.querySelector('.bulb');
-                    
-                    // Включаем
                     messageTimeouts.push(setTimeout(() => {
-                        bulb.classList.add('active');
-                        playBuzz();
+                        bulb.classList.add('active'); playBuzz();
                         if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
                     }, delay));
-
-                    // Выключаем
-                    messageTimeouts.push(setTimeout(() => {
-                        bulb.classList.remove('active');
-                    }, delay + 800));
-
-                    delay += 1200; // Пауза между буквами
+                    messageTimeouts.push(setTimeout(() => { bulb.classList.remove('active'); }, delay + 800));
+                    delay += 1200;
                 }
             });
         }
 
-        // --- DATES & CONFIG STUFF ---
         const targetGlobal = new Date("2025-11-26T17:00:00-08:00");
         document.getElementById('release-date-text').innerText = targetGlobal.toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) + " (Ваше время)";
 
         let activeTrailers = [];
+        const playerWrapper = document.getElementById('player-trigger');
+        const titleText = document.getElementById('video-title-text');
+        let currentIdx = 0;
+
         function applyConfig() {
-            if (config.trailerLinks && config.trailerLinks.length > 0) {
-                activeTrailers = config.trailerLinks.map((url, idx) => ({ src: url, title: `Trailer #${idx + 1}` }));
-            } else activeTrailers = [];
-            if(activeTrailers.length > 0) { currentIdx = 0; loadTrailer(0); }
-            else document.getElementById('video-title-text').innerText = "Трейлеров нет";
+            activeTrailers = config.trailerLinks || [];
+            if(activeTrailers.length > 0) { 
+                currentIdx = 0; 
+                loadTrailer(0); 
+            } else {
+                titleText.innerText = "Трейлеров нет";
+            }
         }
 
-        // --- SUBSCRIPTION ---
+        function loadTrailer(index) {
+            if (activeTrailers.length === 0) return;
+            const item = activeTrailers[index];
+            playerWrapper.style.backgroundImage = `url('${item.poster}')`;
+            titleText.innerText = item.title;
+        }
+
+        function playCurrentTrailer() {
+            if (activeTrailers.length === 0) return;
+            vibration();
+            const link = activeTrailers[currentIdx].link;
+            tg.openTelegramLink(link);
+        }
+
+        function changeTrailer(direction) {
+            vibration(); 
+            if (activeTrailers.length === 0) return;
+            currentIdx += direction;
+            if (currentIdx < 0) currentIdx = activeTrailers.length - 1;
+            if (currentIdx >= activeTrailers.length) currentIdx = 0;
+            loadTrailer(currentIdx);
+        }
+
         let pendingEpId = null; 
         function checkSubRequirement(epId) {
             if (!config.requiredChannel) return true; 
@@ -618,34 +548,10 @@ body {
             const url = config.epLinks[epId];
             if(url) {
                 if(url.includes('t.me')) tg.openTelegramLink(url);
-                else {
-                    document.querySelector('.section-title').scrollIntoView({behavior: 'smooth'});
-                    videoEl.src = url; titleText.innerText = `Эпизод ${epId}`; videoEl.play();
-                }
+                else tg.openTelegramLink(url);
             } else alert(`Видео для Эпизода ${epId} еще не загружено.`);
         }
 
-        // --- PLAYER ---
-        let currentIdx = 0;
-        const videoEl = document.getElementById('main-video');
-        const titleText = document.getElementById('video-title-text');
-        function loadTrailer(index) {
-            if (activeTrailers.length === 0) return;
-            const vid = activeTrailers[index];
-            videoEl.src = vid.src; titleText.innerText = vid.title; videoEl.pause();
-        }
-        function changeTrailer(direction) {
-            vibration(); if (activeTrailers.length === 0) return;
-            currentIdx += direction;
-            if (currentIdx < 0) currentIdx = activeTrailers.length - 1;
-            if (currentIdx >= activeTrailers.length) currentIdx = 0;
-            loadTrailer(currentIdx);
-        }
-        videoEl.addEventListener('play', () => { if(!isMuted) { let v=0.15; const f=setInterval(()=>{if(v>0.01){v-=0.02;bgAudio.volume=v;}else{bgAudio.pause();clearInterval(f);}},100); } });
-        videoEl.addEventListener('pause', () => { if(!isMuted){bgAudio.play();bgAudio.volume=0.15;} });
-        videoEl.addEventListener('ended', () => { if(!isMuted){bgAudio.play();bgAudio.volume=0.15;} });
-
-        // --- GLITCH & PARTICLES ---
         setInterval(() => { document.body.classList.add('glitch-mode'); if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('warning'); setTimeout(()=>document.body.classList.remove('glitch-mode'),400); }, 60000);
         
         const canvas = document.getElementById('upside-down-canvas'), ctx = canvas.getContext('2d');
