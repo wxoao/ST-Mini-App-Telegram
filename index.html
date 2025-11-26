@@ -102,12 +102,12 @@
         .countdown-timer { font-family: 'Inter', sans-serif; font-size: 34px; font-weight: 900; color: #fff; letter-spacing: 1px; margin: 5px 0; text-shadow: 0 0 10px rgba(255, 0, 0, 0.6); }
         .countdown-subtext { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 5px; }
 
-        /* PLAYER STYLES (FIXED) */
+        /* PLAYER STYLES */
         .section-title { font-family: 'Inter', sans-serif; font-size: 19px; font-weight: 700; margin-bottom: 15px; color: #fff; }
         
         .player-wrapper {
             position: relative; width: 100%; 
-            background-color: #000; /* ЧЕРНЫЙ ФОН ВМЕСТО СЕРОГО */
+            background-color: #000;
             border-radius: 12px; overflow: hidden; border: 1px solid #333;
             aspect-ratio: 16 / 9; box-shadow: 0 0 20px rgba(0,0,0,0.8);
             background-size: cover; background-position: center;
@@ -236,7 +236,8 @@
     <div id="sub-modal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-title">ДОСТУП ОГРАНИЧЕН</div>
-            <p class="modal-text">Для просмотра эпизода необходимо подтвердить статус фаната.</p>
+            <!-- Текст изменен -->
+            <p class="modal-text">Для просмотра эпизода необходимо подписаться на канал</p>
             <div class="channel-preview" id="modal-chan-name">@channel</div>
             <button class="modal-btn btn-sub" onclick="doSubscribe()">ПОДПИСАТЬСЯ</button>
             <button class="modal-btn btn-check" onclick="checkSubscription()">Я ПОДПИСАЛСЯ</button>
@@ -296,7 +297,6 @@
             </div>
         </div>
 
-        <!-- NEW PLAYER TRIGGER (IMAGE INSTEAD OF VIDEO) -->
         <div class="section-title">Трейлеры</div>
         <div class="player-section">
             <div class="player-wrapper" id="player-trigger" onclick="playCurrentTrailer()">
@@ -332,14 +332,16 @@
         tg.expand(); tg.setHeaderColor('#000000'); tg.setBackgroundColor('#000000');
         function vibration() { if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); }
 
+        // --- 1. СПИСОК КАНАЛОВ (СМЕШАННЫЙ) ---
         const opChannels = [
-            "strangerthingsfiveseason",
-            "https://t.me/+azpZxcHVlM41OTYy",
-            "https://t.me/+TNUIMbVjwRY3MWFi",
-            "https://t.me/+WnyT5bC4t_VjNzQy",
-            "https://t.me/+ligUp6pRCXtlZTky"
+            "strangerthingsfiveseason",       // Публичный (без https)
+            "https://t.me/+azpZxcHVlM41OTYy", // Приватный (ссылка)
+            "https://t.me/+TNUIMbVjwRY3MWFi", // Приватный (ссылка)
+            "https://t.me/+WnyT5bC4t_VjNzQy", // Приватный (ссылка)
+            "https://t.me/+ligUp6pRCXtlZTky"  // Приватный (ссылка)
         ];
         
+        // Логика выбора канала (меняется раз в сутки)
         const todayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
         const currentAutoChannel = opChannels[todayIndex % opChannels.length];
 
@@ -353,20 +355,18 @@
             trailerLinks: [
                 {
                     title: "Трейлер 5 сезона (Тизер)",
-                    // НОВАЯ КРАСИВАЯ КАРТИНКА (ОФИЦИАЛЬНОЕ ЛОГО НА ЧЕРНОМ)
                     poster: "https://images.ctfassets.net/4cd45et68cgf/5QQ9QVyTXgnYGTdrnrJLcd/318041d404d528b846e6a39433436322/Stranger_Things_Season_5_Logo.jpg",
                     link: "https://t.me/strangerthingsfiveseason/5"
                 },
                 {
                     title: "Видео со съемок",
-                    // ЕЩЕ ОДНА КАЧЕСТВЕННАЯ КАРТИНКА
                     poster: "https://d13ezvd6yrslxm.cloudfront.net/wp/wp-content/images/stranger-things-season-5-poster-700x394.jpg",
                     link: "https://t.me/strangerthingsfiveseason" 
                 }
             ]
         };
         
-        console.log("Сегодняшний канал для подписки:", config.requiredChannel);
+        console.log("Сегодняшний канал:", config.requiredChannel);
 
         const splash = document.getElementById('splash-screen');
         const app = document.getElementById('main-app');
@@ -462,6 +462,7 @@
             if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             wallOverlay.style.display = 'flex';
             bgAudio.volume = 0.05;
+            // ПАСХАЛКА: Текст "nevermind"
             setTimeout(() => { drawWires(); startMessageSequence("nevermind"); }, 500);
         }
 
@@ -530,25 +531,54 @@
             loadTrailer(currentIdx);
         }
 
+        // --- ОБНОВЛЕННАЯ ЛОГИКА ПОДПИСКИ ---
         let pendingEpId = null; 
+        
         function checkSubRequirement(epId) {
             if (!config.requiredChannel) return true; 
             pendingEpId = epId;
-            document.getElementById('modal-chan-name').innerText = "@" + config.requiredChannel;
+            
+            const chan = config.requiredChannel;
+            const nameEl = document.getElementById('modal-chan-name');
+            const subBtn = document.querySelector('.btn-sub');
+            
+            // Если это ссылка (начинается на http)
+            if (chan.startsWith('http')) {
+                nameEl.innerText = "КАНАЛ ПО ОСД";
+                subBtn.innerText = "ПОДАТЬ ЗАЯВКУ";
+            } else {
+                // Если это обычный юзернейм
+                nameEl.innerText = "@" + chan;
+                subBtn.innerText = "ПОДПИСАТЬСЯ";
+            }
+            
             document.getElementById('sub-modal').style.display = 'flex';
             return false;
         }
-        function doSubscribe() { vibration(); tg.openTelegramLink("https://t.me/" + config.requiredChannel); }
+
+        function doSubscribe() { 
+            vibration();
+            const chan = config.requiredChannel;
+            
+            if (chan.startsWith('http')) {
+                // Если это ссылка - открываем как есть
+                tg.openTelegramLink(chan);
+            } else {
+                // Если юзернейм - добавляем t.me
+                tg.openTelegramLink("https://t.me/" + chan);
+            }
+        }
+
         function checkSubscription() {
             vibration(); document.getElementById('sub-modal').style.display = 'none';
             if (pendingEpId) playEpisodeVideo(pendingEpId); pendingEpId = null;
         }
+
         function playEpisodeVideo(epId) {
             closePart();
             const url = config.epLinks[epId];
             if(url) {
-                if(url.includes('t.me')) tg.openTelegramLink(url);
-                else tg.openTelegramLink(url);
+                tg.openTelegramLink(url);
             } else alert(`Видео для Эпизода ${epId} еще не загружено.`);
         }
 
