@@ -25,7 +25,7 @@
             margin: 0; padding: 0; background-color: #000; color: white;
             font-family: 'Inter', sans-serif; overflow-x: hidden; min-height: 100vh;
             -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
+            -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
             padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
             transition: filter 0.2s;
         }
@@ -102,11 +102,10 @@
         .countdown-timer { font-family: 'Inter', sans-serif; font-size: 34px; font-weight: 900; color: #fff; letter-spacing: 1px; margin: 5px 0; text-shadow: 0 0 10px rgba(255, 0, 0, 0.6); }
         .countdown-subtext { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 5px; }
 
-        /* PLAYER STYLES */
-        .section-title { font-family: 'Inter', sans-serif; font-size: 19px; font-weight: 700; margin-bottom: 15px; color: #fff; display: flex; justify-content: space-between; align-items: center; }
-        .status-badge { font-size: 11px; background: #222; padding: 4px 8px; border-radius: 4px; color: #888; text-transform: uppercase; }
-        .status-badge.active { color: #0f0; border: 1px solid #0f0; background: rgba(0,255,0,0.1); }
+        /* SECTION TITLES */
+        .section-title { font-family: 'Inter', sans-serif; font-size: 19px; font-weight: 700; margin-bottom: 15px; margin-top: 30px; color: #fff; }
         
+        /* TRAILER PLAYER STYLES */
         .player-wrapper {
             position: relative; width: 100%; 
             background-color: #000;
@@ -115,21 +114,19 @@
             background-size: cover; background-position: center;
             cursor: pointer; 
         }
-        .player-wrapper iframe { width: 100%; height: 100%; border: none; z-index: 20; position: relative; }
-
         .play-overlay {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 60px; height: 60px; background: rgba(227, 29, 54, 0.8);
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
             font-size: 24px; color: white; border: 2px solid white;
-            box-shadow: 0 0 20px rgba(227, 29, 54, 0.6); transition: 0.2s; z-index: 30;
+            box-shadow: 0 0 20px rgba(227, 29, 54, 0.6); transition: 0.2s;
         }
         .player-wrapper:active .play-overlay { transform: translate(-50%, -50%) scale(0.9); }
         
         .controls-area {
             display: flex; justify-content: space-between; align-items: center;
             margin-top: 12px; background: #111; padding: 8px 12px;
-            border-radius: 10px; border: 1px solid #222; margin-bottom: 30px;
+            border-radius: 10px; border: 1px solid #222; margin-bottom: 10px;
         }
         .nav-btn { background: #222; border: none; color: white; width: 40px; height: 40px; border-radius: 12px; font-size: 20px; cursor: pointer; }
 
@@ -154,7 +151,7 @@
         .db-month { font-size: 9px; font-weight: 700; color: #888; text-transform: uppercase; }
         .available-text { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 12px; color: #0f0; text-shadow: 0 0 10px rgba(0, 255, 0, 0.5); letter-spacing: 1px; text-transform: uppercase; }
 
-        /* EPISODES PAGE */
+        /* EPISODES PAGE (LIST) */
         #episodes-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 50; flex-direction: column; padding: 20px 16px; box-sizing: border-box; overflow-y: auto; animation: slideIn 0.3s ease-out; }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
         .custom-back-btn { background: transparent; border: none; color: #888; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 5px; cursor: pointer; margin-bottom: 10px; padding: 5px 0; width: fit-content; }
@@ -163,7 +160,6 @@
         .ep-header span { font-size: 12px; color: var(--current-glow); text-transform: uppercase; }
         .episode-list { display: flex; flex-direction: column; gap: 15px; }
         .episode-card { display: flex; align-items: center; gap: 15px; background: #111; padding: 10px; border-radius: 8px; border: 1px solid #222; cursor: pointer; }
-        .episode-card:active { background: #1a1a1a; }
         .ep-preview { width: 100px; height: 60px; background: #222; border-radius: 4px; position: relative; overflow: hidden; flex-shrink: 0; }
         .ep-preview::after { content: '▶'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #555; font-size: 20px; }
         .ep-details { flex-grow: 1; }
@@ -171,10 +167,35 @@
         .ep-title { font-size: 14px; color: white; font-weight: 600; line-height: 1.2; margin-bottom: 4px; }
         .ep-dur { font-size: 11px; color: #666; }
 
+        /* CINEMA MODE (FULLSCREEN PLAYER) */
+        #cinema-mode {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 200; flex-direction: column; justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .cinema-close-btn {
+            position: absolute; top: 15px; left: 15px; z-index: 210;
+            background: rgba(255, 255, 255, 0.1); border: 1px solid #333;
+            color: #fff; padding: 8px 12px; border-radius: 8px; cursor: pointer;
+            backdrop-filter: blur(5px); font-weight: bold; font-size: 12px;
+        }
+        .cinema-player-box {
+            width: 100%; aspect-ratio: 16/9; background: #000; position: relative;
+        }
+        #cinema-frame { width: 100%; height: 100%; border: none; }
+        .cinema-controls {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px; color: white; margin-top: 10px;
+        }
+        .cinema-info { text-align: center; flex-grow: 1; }
+        .cinema-title { font-size: 16px; font-weight: bold; color: var(--current-glow); margin-bottom: 5px; }
+        .cinema-subtitle { font-size: 12px; color: #888; }
+
         /* SUBSCRIPTION MODAL */
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 150; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.85); z-index: 300; justify-content: center; align-items: center;
             backdrop-filter: blur(5px);
         }
         .modal-box {
@@ -238,6 +259,23 @@
     <audio id="bg-music" src="https://orangefreesounds.com/wp-content/uploads/2023/02/Creepy-grandfather-clock-sound.mp3" loop></audio>
     <audio id="buzz-sound" src="https://www.soundjay.com/mechanical/sounds/electric-buzz-01.mp3"></audio>
 
+    <!-- CINEMA MODE (NEW WINDOW FOR EPISODES) -->
+    <div id="cinema-mode">
+        <button class="cinema-close-btn" onclick="closeCinema()">✕ ЗАКРЫТЬ</button>
+        <div class="cinema-player-box">
+            <iframe id="cinema-frame" allowfullscreen="true" allow="autoplay; encrypted-media"></iframe>
+        </div>
+        <div class="cinema-controls">
+            <button class="nav-btn" onclick="changeCinemaEpisode(-1)">‹</button>
+            <div class="cinema-info">
+                <div class="cinema-title" id="cinema-title">Название серии</div>
+                <div class="cinema-subtitle" id="cinema-sub">5 СЕЗОН</div>
+            </div>
+            <button class="nav-btn" onclick="changeCinemaEpisode(1)">›</button>
+        </div>
+    </div>
+
+    <!-- SUBSCRIPTION MODAL -->
     <div id="sub-modal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-title">ДОСТУП ОГРАНИЧЕН</div>
@@ -248,6 +286,7 @@
         </div>
     </div>
 
+    <!-- WALL OVERLAY -->
     <div id="wall-overlay" onclick="closeWall()">
         <div class="wall-container" id="wall-container">
             <svg id="wires-svg"></svg>
@@ -275,6 +314,7 @@
         <div class="bar"></div>
     </div>
 
+    <!-- EPISODES LIST -->
     <div id="episodes-page">
         <button class="custom-back-btn" onclick="closePart()"><span>←</span> НАЗАД</button>
         <div class="ep-header">
@@ -301,24 +341,8 @@
             </div>
         </div>
 
-        <div class="section-title">
-            <span id="player-title-label">Трейлеры</span>
-            <span class="status-badge" id="player-mode-badge" style="display:none;">ПРОСМОТР</span>
-        </div>
-        
-        <div class="player-section">
-            <div class="player-wrapper" id="player-wrapper">
-                <div class="play-overlay" id="play-btn" onclick="playContent()">▶</div>
-                <iframe id="video-frame" allowfullscreen="true" allow="autoplay; encrypted-media" style="display:none;"></iframe>
-            </div>
-            <div class="controls-area">
-                <button class="nav-btn" onclick="changeContent(-1)">‹</button>
-                <div style="color:#ccc; font-size:13px;" id="video-title-text">Загрузка...</div>
-                <button class="nav-btn" onclick="changeContent(1)">›</button>
-            </div>
-        </div>
-
-        <div class="section-title" id="schedule-title">График выхода</div>
+        <!-- MOVED SCHEDULE TO TOP -->
+        <div class="section-title" id="schedule-title" style="margin-top: 0;">Смотреть</div>
         <div class="dates-grid">
             <div class="date-card" id="card-part-1" onclick="openPart(1)">
                 <div class="date-info"><h3>Часть 1 (4 серии)</h3><p>Начало конца</p></div>
@@ -331,6 +355,19 @@
             <div class="date-card" id="card-part-3" onclick="openPart(3)">
                 <div class="date-info"><h3>Часть 3 (1 серия)</h3><p>Финал истории</p></div>
                 <div class="date-badge-box" id="badge-part-3"><span class="db-day">31</span><span class="db-month">ДЕК</span></div>
+            </div>
+        </div>
+
+        <!-- TRAILERS MOVED BELOW -->
+        <div class="section-title">Трейлеры</div>
+        <div class="player-section">
+            <div class="player-wrapper" id="player-trigger" onclick="playCurrentTrailer()">
+                <div class="play-overlay">▶</div>
+            </div>
+            <div class="controls-area">
+                <button class="nav-btn" onclick="changeTrailer(-1)">‹</button>
+                <div style="color:#ccc; font-size:13px;" id="video-title-text">Загрузка...</div>
+                <button class="nav-btn" onclick="changeTrailer(1)">›</button>
             </div>
         </div>
     </div>
@@ -356,7 +393,7 @@
         const config = {
             requiredChannel: currentAutoChannel,
             
-            // ССЫЛКИ ИЗМЕНЕНЫ НА ВАШИ
+            // Ссылки на серии
             epLinks: {
                 1: { url: "https://t.me/strangerthingsfiveseason/17", title: "Глава 1: Ползание" },
                 2: { url: "https://t.me/strangerthingsfiveseason/19", title: "Глава 2: Исчезновение" },
@@ -371,7 +408,7 @@
                 {
                     title: "Трейлер 5 сезона (Тизер)",
                     poster: "https://images.ctfassets.net/4cd45et68cgf/5QQ9QVyTXgnYGTdrnrJLcd/318041d404d528b846e6a39433436322/Stranger_Things_Season_5_Logo.jpg",
-                    link: "https://t.me/strangerthingsfiveseason/5" // Ссылка на пост с трейлером
+                    link: "https://t.me/strangerthingsfiveseason/5"
                 },
                 {
                     title: "Видео со съемок",
@@ -390,9 +427,7 @@
         setTimeout(() => {
             splash.style.display = 'none'; app.style.display = 'block';
             setTimeout(() => app.style.opacity = '1', 50);
-            checkDates(); 
-            loadTrailer(0); // Загрузка первого трейлера при старте
-            setupWall();
+            checkDates(); applyConfig(); setupWall();
             document.body.addEventListener('click', initAudioContext, { once: true });
         }, 3800);
 
@@ -505,103 +540,104 @@
         const targetGlobal = new Date("2025-11-26T17:00:00-08:00");
         document.getElementById('release-date-text').innerText = targetGlobal.toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) + " (Ваше время)";
 
-        // --- ЛОГИКА ПЛЕЕРА ---
-        const playerWrapper = document.getElementById('player-wrapper');
+        // --- TRAILER PLAYER (INLINE) ---
+        const playerWrapper = document.getElementById('player-trigger');
         const titleText = document.getElementById('video-title-text');
-        const playerTitleLabel = document.getElementById('player-title-label');
-        const playerBadge = document.getElementById('player-mode-badge');
-        const playBtn = document.getElementById('play-btn');
-        const iframe = document.getElementById('video-frame');
+        let currentIdx = 0;
 
-        let currentMode = 'trailer'; // 'trailer' or 'episode'
-        let currentTrailerIdx = 0;
-        let selectedEpisodeId = null;
-
-        function resetPlayerState() {
-            iframe.style.display = 'none';
-            iframe.src = '';
-            playBtn.style.display = 'flex';
+        function applyConfig() {
+            const activeTrailers = config.trailerLinks || [];
+            if(activeTrailers.length > 0) { 
+                currentIdx = 0; 
+                loadTrailer(0); 
+            } else {
+                titleText.innerText = "Трейлеров нет";
+            }
         }
 
         function loadTrailer(index) {
-            currentMode = 'trailer';
-            currentTrailerIdx = index;
-            resetPlayerState();
-            
-            const item = config.trailerLinks[index];
+            const activeTrailers = config.trailerLinks;
+            if (activeTrailers.length === 0) return;
+            const item = activeTrailers[index];
             playerWrapper.style.backgroundImage = `url('${item.poster}')`;
             titleText.innerText = item.title;
-            playerTitleLabel.innerText = "Трейлеры";
-            playerBadge.style.display = 'none';
         }
 
-        function loadEpisodeToMainPlayer(epId) {
-            currentMode = 'episode';
-            selectedEpisodeId = epId;
-            resetPlayerState();
-
-            const item = config.epLinks[epId];
-            // Заставка для эпизода (можно поставить общую картинку сериала)
-            playerWrapper.style.backgroundImage = `url('https://ru.kinorium.com/scripts/resize/resize.php?src=https://avatars.mds.yandex.net/get-kinopoisk-image/10893610/e8404439-433d-4a6d-9360-a0d352407877/orig&w=1000')`;
-            titleText.innerText = item.title;
-            playerTitleLabel.innerText = "Экран";
-            playerBadge.style.display = 'inline-block';
-            
-            // Скролл к плееру
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function playContent() {
+        function playCurrentTrailer() {
+            const activeTrailers = config.trailerLinks;
+            if (activeTrailers.length === 0) return;
             vibration();
-            
-            if (currentMode === 'trailer') {
-                // Трейлер - ссылка на пост ТГ (открываем внешне, так как это канал)
-                const link = config.trailerLinks[currentTrailerIdx].link;
-                tg.openTelegramLink(link);
-            } else if (currentMode === 'episode') {
-                // Эпизод - проверяем подписку
-                if (checkSubRequirement()) {
-                    // Если подписка есть - запускаем
-                    const epUrl = config.epLinks[selectedEpisodeId].url;
-                    // ПРЕВРАЩАЕМ ССЫЛКУ В EMBED ФОРМАТ для просмотра внутри
-                    const embedUrl = epUrl + "?embed=1&mode=tme";
-                    
-                    playBtn.style.display = 'none';
-                    iframe.src = embedUrl;
-                    iframe.style.display = 'block';
-                }
-            }
+            const link = activeTrailers[currentIdx].link;
+            tg.openTelegramLink(link);
         }
 
-        function changeContent(direction) {
+        function changeTrailer(direction) {
             vibration(); 
-            if (currentMode === 'episode') {
-                // Если смотрели серию и нажали стрелку - вернемся к трейлерам
-                loadTrailer(0);
+            const activeTrailers = config.trailerLinks;
+            if (activeTrailers.length === 0) return;
+            currentIdx += direction;
+            if (currentIdx < 0) currentIdx = activeTrailers.length - 1;
+            if (currentIdx >= activeTrailers.length) currentIdx = 0;
+            loadTrailer(currentIdx);
+        }
+
+        // --- CINEMA MODE (EPISODES) ---
+        let currentCinemaEp = 1;
+        const cinemaOverlay = document.getElementById('cinema-mode');
+        const cinemaFrame = document.getElementById('cinema-frame');
+        const cinemaTitle = document.getElementById('cinema-title');
+
+        function openCinema(epId, force = false) {
+            // 1. Проверяем подписку (если force == false)
+            if (!force && !checkSubRequirement(epId)) return;
+
+            // 2. Открываем окно
+            currentCinemaEp = epId;
+            const epData = config.epLinks[epId];
+            if (!epData || !epData.url) {
+                alert("Эта серия еще недоступна.");
                 return;
             }
+
+            vibration();
+            // Превращаем ссылку поста в Embed
+            const embedUrl = epData.url + "?embed=1&mode=tme";
             
-            currentTrailerIdx += direction;
-            if (currentTrailerIdx < 0) currentTrailerIdx = config.trailerLinks.length - 1;
-            if (currentTrailerIdx >= config.trailerLinks.length) currentTrailerIdx = 0;
-            loadTrailer(currentTrailerIdx);
+            cinemaTitle.innerText = epData.title;
+            cinemaFrame.src = embedUrl;
+            cinemaOverlay.style.display = 'flex';
+            
+            // Закрываем меню серий, если оно открыто
+            closePart();
+            
+            // Если играет музыка, глушим
+            if(!isMuted) bgAudio.pause();
         }
 
-        // --- ПОДПИСКА (3 ЧАСА) ---
-        let pendingSubCheck = false;
-        
-        function checkSubRequirement() {
-            // Проверка localStorage
-            const lastCheck = localStorage.getItem('stranger_sub_time');
-            const now = Date.now();
-            const threeHours = 3 * 60 * 60 * 1000;
+        function closeCinema() {
+            vibration();
+            cinemaOverlay.style.display = 'none';
+            cinemaFrame.src = '';
+            if(!isMuted) bgAudio.play();
+        }
 
-            if (lastCheck && (now - lastCheck < threeHours)) {
-                return true; // Подписка еще действует
-            }
+        function changeCinemaEpisode(dir) {
+            vibration();
+            let nextEp = currentCinemaEp + dir;
+            // Ограничиваем только вышедшими (1-4)
+            if (nextEp < 1) nextEp = 4;
+            if (nextEp > 4) nextEp = 1;
+            
+            // Переключаем (проверка подписки БУДЕТ СНОВА, так как force=false по умолчанию)
+            openCinema(nextEp); 
+        }
 
-            // Если времени прошло больше или не было проверки
-            pendingSubCheck = true;
+        // --- ПОДПИСКА (ВСЕГДА ПРОСИТЬ) ---
+        let pendingEpId = null;
+
+        function checkSubRequirement(epId) {
+            // Запоминаем, какую серию хотели открыть
+            pendingEpId = epId;
             
             const chan = config.requiredChannel;
             const nameEl = document.getElementById('modal-chan-name');
@@ -616,7 +652,7 @@
             }
             
             document.getElementById('sub-modal').style.display = 'flex';
-            return false;
+            return false; // Блокируем открытие
         }
 
         function doSubscribe() { 
@@ -633,12 +669,10 @@
             vibration(); 
             document.getElementById('sub-modal').style.display = 'none';
             
-            // Сохраняем время проверки
-            localStorage.setItem('stranger_sub_time', Date.now());
-            
-            if (pendingSubCheck) {
-                playContent(); // Повторный запуск воспроизведения
-                pendingSubCheck = false;
+            // Если мы запомнили серию, открываем её принудительно (force=true)
+            if (pendingEpId) {
+                openCinema(pendingEpId, true);
+                pendingEpId = null;
             }
         }
 
@@ -680,14 +714,15 @@
             data.episodes.forEach((ep, index) => {
                 const card = document.createElement('div'); card.className = 'episode-card';
                 const globalEpId = data.offset + index + 1;
+                
+                // CLICK HANDLER: Calls openCinema directly
                 card.onclick = () => { 
                     vibration(); 
                     if (now < dates[partId]) {
                         alert('Этот эпизод еще не вышел!'); 
                     } else {
-                        // ЗАКРЫВАЕМ СПИСОК И ГРУЗИМ В ПЛЕЕР
-                        closePart();
-                        loadEpisodeToMainPlayer(globalEpId);
+                        // ОТКРЫВАЕМ НОВОЕ ОКНО С ПЛЕЕРОМ
+                        openCinema(globalEpId);
                     }
                 };
                 card.innerHTML = `<div class="ep-preview"></div><div class="ep-details"><div class="ep-num">ЭПИЗОД ${globalEpId}</div><div class="ep-title">${ep.name}</div><div class="ep-dur">${ep.duration}</div></div>`;
