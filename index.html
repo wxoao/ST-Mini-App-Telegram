@@ -201,7 +201,8 @@
         .cinema-player-box {
             width: 100%; 
             height: 100%; 
-            background: #000; 
+            background: #000 url('https://d13ezvd6yrslxm.cloudfront.net/wp/wp-content/images/stranger-things-season-5-poster-700x394.jpg') no-repeat center center;
+            background-size: contain; /* Чтобы постер был виден, если видео не грузится */
             position: relative;
             z-index: 2005;
             display: flex;
@@ -219,6 +220,28 @@
             width: 100%; height: 100%; border: none; background: black; z-index: 2005; display: none;
         }
         
+        /* КНОПКА СПАСЕНИЯ */
+        .rescue-btn {
+            position: absolute;
+            bottom: 15%; /* Чуть выше контролов */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2020;
+            background: #222;
+            border: 2px solid var(--stranger-red);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex; gap: 8px; align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            animation: pulseRescue 3s infinite;
+            white-space: nowrap;
+        }
+        @keyframes pulseRescue { 0% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } 100% { transform: translateX(-50%) scale(1); } }
+
         .cinema-controls {
             position: absolute; bottom: 30px;
             display: flex; 
@@ -311,12 +334,18 @@
         <div class="cinema-close-btn" onclick="closeCinema()">✕ ЗАКРЫТЬ</div>
         
         <div class="cinema-player-box">
-            <!-- ДВА ВАРИАНТА ПЛЕЕРА: ВИДЕО И IFRAME -->
+            <!-- ВАРИАНТ 1: Native MP4 -->
             <video id="cinema-video" controls playsinline controlsList="nodownload"></video>
+            
+            <!-- ВАРИАНТ 2: Iframe (Pixeldrain) -->
             <iframe id="cinema-iframe" allowfullscreen allow="autoplay; fullscreen"></iframe>
+            
+            <!-- КНОПКА СПАСЕНИЯ (ВИДНА ВСЕГДА В РЕЖИМЕ PIXELDRAIN) -->
+            <div id="rescue-btn" class="rescue-btn" onclick="openExternal()" style="display:none;">
+                ⚠️ НЕ ГРУЗИТ? ЖМИ СЮДА
+            </div>
         </div>
         
-        <!-- Меню навигации оставил, оно будет поверх -->
         <div class="cinema-controls">
             <button class="nav-btn" onclick="changeCinemaEpisode(-1)">‹</button>
             <div class="cinema-info">
@@ -449,8 +478,7 @@
                 3: { url: "https://t.me/strangerthingsfiveseason/20", title: "Глава 3: Ловушка" },
                 4: { url: "https://t.me/strangerthingsfiveseason/21", title: "Глава 4: Колдун" },
                 
-                // ТВОИ ССЫЛКИ PIXELDRAIN (ID ФАЙЛОВ)
-                // Я настроил так, что достаточно ID или полной ссылки
+                // PIXELDRAIN LINKS
                 5: { url: "https://pixeldrain.com/u/NHFBNcGA", title: "Глава 5: Шоковая терапия" },
                 6: { url: "https://pixeldrain.com/u/hKeNyrXj", title: "Глава 6: Побег из Камазотц" },
                 7: { url: "https://pixeldrain.com/u/AbCP8EHM", title: "Глава 7: Мост" },
@@ -636,10 +664,12 @@
 
         // --- CINEMA MODE (HYBRID PLAYER LOGIC) ---
         let currentCinemaEp = 1;
+        let currentVideoUrl = "";
         const cinemaOverlay = document.getElementById('cinema-mode');
         const cinemaVideo = document.getElementById('cinema-video');
         const cinemaIframe = document.getElementById('cinema-iframe');
         const cinemaTitle = document.getElementById('cinema-title');
+        const rescueBtn = document.getElementById('rescue-btn');
 
         function openCinema(epId, force = false) {
             if (!force && !checkSubRequirement(epId)) return;
@@ -653,26 +683,28 @@
 
             vibration();
             cinemaTitle.innerText = epData.title;
+            currentVideoUrl = epData.url;
             
-            // ПРОВЕРКА: PIXELDRAIN или ОБЫЧНЫЙ ФАЙЛ
+            // Если ссылка на Телеграм пост
+            if (epData.url.includes("t.me")) {
+                tg.openTelegramLink(epData.url);
+                return;
+            }
+
+            // ПРОВЕРКА: PIXELDRAIN
             if (epData.url.includes("pixeldrain")) {
                 // Включаем режим IFRAME
                 let id = epData.url.split('/').pop();
-                // Чистим ID от лишних параметров
                 if(id.includes('?')) id = id.split('?')[0];
                 
-                // Формируем ссылку на Embed
                 const embedUrl = `https://pixeldrain.com/u/${id}?embed`;
                 
                 cinemaVideo.style.display = 'none';
                 cinemaVideo.pause();
                 cinemaIframe.style.display = 'block';
                 cinemaIframe.src = embedUrl;
+                rescueBtn.style.display = 'flex'; // ПОКАЗЫВАЕМ СПАСИТЕЛЬНУЮ КНОПКУ
                 
-            } else if (epData.url.includes("t.me")) {
-                // Если ссылка на телеграм пост
-                tg.openTelegramLink(epData.url);
-                return;
             } else {
                 // Включаем режим VIDEO (для других прямых MP4)
                 cinemaIframe.style.display = 'none';
@@ -680,6 +712,7 @@
                 cinemaVideo.style.display = 'block';
                 cinemaVideo.src = epData.url;
                 cinemaVideo.play().catch(e=>{});
+                rescueBtn.style.display = 'none';
             }
             
             cinemaOverlay.style.display = 'flex';
@@ -688,12 +721,19 @@
             if(!isMuted) bgAudio.pause();
         }
 
+        // Функция открытия внешней ссылки (в системном браузере)
+        function openExternal() {
+            if (currentVideoUrl) {
+                // tg.openLink гарантированно открывает Safari/Chrome
+                tg.openLink(currentVideoUrl);
+            }
+        }
+
         function closeCinema() {
             vibration();
             cinemaOverlay.style.display = 'none';
             document.body.classList.remove('modal-open');
             
-            // Стопаем всё
             cinemaVideo.pause();
             cinemaVideo.src = '';
             cinemaIframe.src = '';
