@@ -8,347 +8,270 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Benguiat+ITC&family=Cormorant+SC:wght@700&family=Inter:wght@400;600;800&family=Permanent+Marker&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Benguiat+ITC&family=Inter:wght@400;500;700;900&family=Permanent+Marker&display=swap" rel="stylesheet">
 
     <style>
         :root {
             --stranger-red: #ff0909;
-            --glow-core: #e71d36;
             --upside-blue: #0044ff;
-            --dark-bg: #0e0e0e;
-            --card-bg: #151515;
-            --text-gray: #8e8e93;
+            --bg-black: #050505;
+            --card-glass: rgba(20, 20, 20, 0.75);
+            --card-border: rgba(255, 9, 9, 0.2);
+            --text-gray: #a1a1a6;
             --current-glow: var(--stranger-red);
+            --nav-height: 70px;
         }
 
         body {
-            margin: 0; padding: 0; background-color: #000; color: white;
-            font-family: 'Inter', sans-serif; overflow-x: hidden; min-height: 100vh;
+            margin: 0; padding: 0; 
+            background-color: var(--bg-black); 
+            color: white;
+            font-family: 'Inter', sans-serif; 
+            overflow-x: hidden; min-height: 100vh;
             -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
-            padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);
-            touch-action: manipulation;
+            -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+            padding-top: env(safe-area-inset-top); 
+            padding-bottom: calc(env(safe-area-inset-bottom) + var(--nav-height));
+            background-image: radial-gradient(circle at 50% 30%, #1a0505 0%, #000000 80%);
+            background-attachment: fixed;
+        }
+
+        body::before {
+            content: " "; display: block; position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 1000; background-size: 100% 2px, 3px 100%; pointer-events: none; opacity: 0.6;
         }
 
         body.modal-open { overflow: hidden; position: fixed; width: 100%; height: 100%; }
         ::-webkit-scrollbar { display: none; }
+        #upside-down-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; opacity: 0.6; }
 
-        /* CANVAS */
-        #upside-down-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; opacity: 0.6; }
-
-        /* GLITCH MODE */
         body.glitch-mode { --current-glow: var(--upside-blue); }
-        body.glitch-mode h1, body.glitch-mode h2, body.glitch-mode h3, 
-        body.glitch-mode p, body.glitch-mode span, body.glitch-mode .stranger-font,
-        body.glitch-mode .countdown-timer {
-            transform: scaleY(-1); filter: hue-rotate(180deg) blur(0.5px);
-        }
+        body.glitch-mode h1, body.glitch-mode h2, body.glitch-mode h3, body.glitch-mode p, body.glitch-mode span, body.glitch-mode .stranger-font, body.glitch-mode .countdown-timer { transform: scaleY(-1); filter: hue-rotate(180deg) blur(0.5px); }
         body.glitch-mode #wall-overlay { transform: none !important; filter: none !important; }
 
-        /* TEXT STYLES */
         .stranger-font {
             font-family: 'Benguiat ITC', serif; font-weight: 700; color: transparent;
-            -webkit-text-stroke: 1.5px var(--current-glow); text-transform: uppercase;
-            position: relative; text-align: center;
-            filter: drop-shadow(0 0 2px var(--current-glow)) drop-shadow(0 0 10px var(--current-glow));
-            transition: -webkit-text-stroke 0.1s, filter 0.1s;
+            -webkit-text-stroke: 1.2px var(--current-glow); text-transform: uppercase;
+            position: relative; text-align: center; filter: drop-shadow(0 0 6px var(--current-glow));
         }
 
         /* SPLASH */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 100; background: #000;
+            z-index: 9999; background: radial-gradient(circle, #1a0000 0%, #000000 100%);
         }
-        .intro-container { animation: introSequence 4s cubic-bezier(0.7, 0, 0.84, 0) forwards; }
-        .splash-line-1 { font-size: 2.5rem; letter-spacing: 5px; margin-bottom: -10px; }
-        .splash-line-2 { font-size: 3rem; letter-spacing: 2px; }
-        .splash-line-3 { font-size: 4rem; letter-spacing: 8px; margin-top: -10px; }
-        .bar { width: 0%; height: 2px; background-color: var(--stranger-red); box-shadow: 0 0 10px var(--stranger-red); margin: 10px 0; animation: expandBar 2s ease-out forwards; }
+        .intro-container { display: flex; flex-direction: column; align-items: center; animation: introZoom 3.5s ease-in forwards; transform-origin: center center; }
+        .splash-line-1 { font-size: 2rem; letter-spacing: 4px; margin-bottom: -5px; opacity: 0; animation: fadeInWord 1s ease forwards 0.5s; }
+        .splash-line-2 { font-size: 2.8rem; letter-spacing: 1px; margin: -5px 0; opacity: 0; animation: fadeInWord 1s ease forwards 1s; }
+        .splash-line-3 { font-size: 3.5rem; letter-spacing: 6px; margin-top: -10px; opacity: 0; animation: fadeInWord 1s ease forwards 1.5s; }
+        .bar { width: 0%; height: 2px; background-color: var(--stranger-red); box-shadow: 0 0 15px var(--stranger-red); margin: 20px 0; animation: expandBar 2.5s ease-out forwards; }
+        @keyframes introZoom { 0% { transform: scale(0.9); opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; transform: scale(1.1); } 100% { opacity: 0; transform: scale(10); } }
+        @keyframes fadeInWord { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes expandBar { 0% { width: 0%; opacity: 0; } 40% { width: 60%; opacity: 1; } 100% { width: 90%; opacity: 0; } }
 
-        /* APP STRUCTURE */
-        #main-app {
-            display: none; opacity: 0; transition: opacity 1s ease-in;
-            padding: 20px 16px 80px 16px; max-width: 600px; margin: 0 auto;
-            position: relative; z-index: 2;
+        /* TABS NAVIGATION */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height);
+            background: rgba(10, 10, 10, 0.95); backdrop-filter: blur(15px);
+            border-top: 1px solid var(--card-border);
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 500; padding-bottom: env(safe-area-inset-bottom);
         }
-        .app-header { margin-bottom: 30px; margin-top: 10px; display: flex; justify-content: center; align-items: center; flex-direction: column; position: relative; }
-        
-        .header-logo { cursor: pointer; padding: 10px; }
-        .header-logo:active { transform: scale(0.98); opacity: 0.8; transition: 0.2s; }
-        .header-logo .line { display: block; line-height: 0.9; }
-        .header-logo .l1 { font-size: 1.2rem; letter-spacing: 3px; }
-        .header-logo .l2 { font-size: 1.5rem; letter-spacing: 1px; }
-        .header-logo .l3 { font-size: 1.8rem; letter-spacing: 4px; margin-top: -5px; }
+        .nav-item {
+            flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: #666; transition: all 0.2s; cursor: pointer;
+        }
+        .nav-item.active { color: var(--stranger-red); text-shadow: 0 0 10px rgba(255, 9, 9, 0.4); }
+        .nav-icon { margin-bottom: 4px; }
+        .nav-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* SOUND BUTTON */
+        /* PAGES */
+        .page-container {
+            display: none; /* Скрыто по умолчанию */
+            padding: 10px 20px 20px 20px; max-width: 600px; margin: 0 auto;
+            position: relative; z-index: 10; opacity: 0; transition: opacity 0.2s ease;
+        }
+        .page-container.active-page { display: block; opacity: 1; }
+
+        /* HEADER */
+        .app-header { margin-bottom: 30px; margin-top: 25px; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        .header-logo { cursor: pointer; padding: 10px; display: flex; flex-direction: column; align-items: center; transition: transform 0.2s; }
+        .header-logo:active { transform: scale(0.95); opacity: 0.8; }
+        .header-logo .line { display: block; line-height: 0.8; text-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
+        .header-logo .l1 { font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 2px; }
+        .header-logo .l2 { font-size: 2.2rem; letter-spacing: 0px; }
+        .header-logo .l3 { font-size: 2.8rem; letter-spacing: 3px; margin-top: -3px; }
+
         .sound-toggle {
-            position: fixed; top: 15px; right: 15px; z-index: 101;
-            width: 36px; height: 36px; border-radius: 50%;
-            background: rgba(0, 0, 0, 0.6); border: 1px solid #333;
-            color: white; display: flex; justify-content: center; align-items: center;
-            cursor: pointer; backdrop-filter: blur(4px); transition: all 0.2s;
+            position: fixed; top: 15px; right: 15px; z-index: 200; width: 40px; height: 40px; border-radius: 50%;
+            background: rgba(20, 20, 20, 0.5); border: 1px solid var(--card-border); color: white; display: flex; justify-content: center; align-items: center; cursor: pointer; backdrop-filter: blur(8px); transition: all 0.2s;
         }
-        .sound-toggle.muted { color: #555; border-color: #222; }
+        .sound-toggle.muted { opacity: 0.6; }
 
-        /* COUNTDOWN */
+        /* HOME ELEMENTS */
         .countdown-banner {
-            width: 100%; border-radius: 16px; padding: 25px 20px;
-            margin-bottom: 30px; position: relative; overflow: hidden; box-sizing: border-box;
-            box-shadow: 0 10px 40px rgba(231, 29, 54, 0.15); border: 1px solid #3a0505;
-            background: radial-gradient(circle at 50% 120%, #4a0000 0%, #200000 40%, #0a0a0a 80%);
-            z-index: 5;
+            width: 100%; border-radius: 16px; padding: 25px 20px; margin-bottom: 35px; position: relative; overflow: hidden;
+            background: linear-gradient(180deg, rgba(30,0,0,0.6) 0%, rgba(10,0,0,0.8) 100%);
+            border: 1px solid var(--card-border); box-shadow: 0 0 30px rgba(255, 0, 0, 0.05); backdrop-filter: blur(5px); text-align: center;
         }
-        .banner-content { position: relative; z-index: 2; text-align: center; }
-        .countdown-timer { font-family: 'Inter', sans-serif; font-size: 34px; font-weight: 900; color: #fff; letter-spacing: 1px; margin: 5px 0; text-shadow: 0 0 10px rgba(255, 0, 0, 0.6); }
-        .countdown-subtext { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 5px; }
+        .countdown-timer { font-family: 'Benguiat ITC', serif; font-size: 32px; font-weight: 700; color: #fff; letter-spacing: 2px; margin: 10px 0; text-shadow: 0 0 15px var(--stranger-red); font-variant-numeric: tabular-nums; }
+        .banner-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--stranger-red); font-weight: 700; opacity: 0.9; }
+        .countdown-subtext { font-size: 12px; color: var(--text-gray); margin-top: 8px; font-weight: 500; }
 
-        /* SECTION TITLES */
-        .section-title { font-family: 'Inter', sans-serif; font-size: 19px; font-weight: 700; margin-bottom: 15px; margin-top: 30px; color: #fff; }
+        .section-title { font-family: 'Benguiat ITC', serif; font-size: 24px; color: #fff; margin-bottom: 15px; margin-top: 30px; text-shadow: 0 2px 4px rgba(0,0,0,0.8); border-left: 3px solid var(--stranger-red); padding-left: 12px; letter-spacing: 0.5px; }
+        .dates-grid { display: flex; flex-direction: column; gap: 14px; }
         
-        /* TRAILER PLAYER */
-        .player-wrapper {
-            position: relative; width: 100%; 
-            background-color: #000;
-            border-radius: 12px; overflow: hidden; border: 1px solid #333;
-            aspect-ratio: 16 / 9; box-shadow: 0 0 20px rgba(0,0,0,0.8);
-            background-size: cover; background-position: center;
-            cursor: pointer; 
-        }
-        .play-overlay {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 60px; height: 60px; background: rgba(227, 29, 54, 0.8);
-            border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-size: 24px; color: white; border: 2px solid white;
-            box-shadow: 0 0 20px rgba(227, 29, 54, 0.6); transition: 0.2s;
-        }
-        .player-wrapper:active .play-overlay { transform: translate(-50%, -50%) scale(0.9); }
-        
-        .controls-area {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-top: 12px; background: #111; padding: 8px 12px;
-            border-radius: 10px; border: 1px solid #222; margin-bottom: 10px;
-        }
-        .nav-btn { background: #222; border: none; color: white; width: 40px; height: 40px; border-radius: 12px; font-size: 20px; cursor: pointer; }
-
-        /* DATES & EPISODES */
-        .dates-grid { display: flex; flex-direction: column; gap: 12px; }
         .date-card {
-            background: var(--card-bg); border-radius: 12px; padding: 14px 16px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-left: 3px solid var(--current-glow);
-            box-shadow: -4px 0 15px -5px rgba(231, 29, 54, 0.2);
-            cursor: pointer; transition: transform 0.1s, background 0.2s; position: relative; z-index: 2;
+            background: var(--card-glass); border-radius: 14px; padding: 15px 18px; display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid var(--card-border); box-shadow: 0 4px 15px rgba(0,0,0,0.4); backdrop-filter: blur(10px); cursor: pointer; position: relative; overflow: hidden; transition: transform 0.2s, background 0.3s;
         }
-        .date-card:active { transform: scale(0.96); background: #222; }
-        .date-info h3 { margin: 0 0 4px 0; font-size: 15px; color: white; }
+        .date-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--current-glow); box-shadow: 2px 0 10px var(--current-glow); }
+        .date-card:active { transform: scale(0.98); background: rgba(50,50,50,0.8); }
+        .date-info h3 { margin: 0 0 4px 0; font-size: 17px; color: white; font-family: 'Benguiat ITC', serif; letter-spacing: 0.5px; }
         .date-info p { margin: 0; font-size: 13px; color: var(--text-gray); }
-        .date-badge-box {
-            background: #252525; width: 50px; height: 50px; border-radius: 10px;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            flex-shrink: 0; border: 1px solid #333;
+        .date-badge-box { background: #181818; width: 52px; height: 52px; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px solid #333; }
+        .db-day { font-size: 19px; font-weight: 900; color: white; line-height: 1; }
+        .db-month { font-size: 9px; font-weight: 800; color: var(--stranger-red); text-transform: uppercase; margin-top: 2px; }
+        .available-text { font-weight: 900; font-size: 10px; color: #00ff44; text-shadow: 0 0 8px rgba(0, 255, 68, 0.4); letter-spacing: 1px; text-transform: uppercase; border: 1px solid #005511; padding: 4px 6px; border-radius: 4px; background: rgba(0,255,68,0.1); }
+
+        .player-section { padding: 5px 0; }
+        .player-wrapper { position: relative; width: 100%; background-color: #000; border-radius: 14px; overflow: hidden; aspect-ratio: 16 / 9; box-shadow: 0 10px 30px rgba(0,0,0,0.6); background-size: cover; background-position: center; cursor: pointer; border: 1px solid #333; }
+        .play-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60px; height: 60px; background: rgba(200, 20, 20, 0.2); backdrop-filter: blur(4px); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; color: white; border: 2px solid white; box-shadow: 0 0 20px rgba(255, 9, 9, 0.5); transition: transform 0.2s; }
+        .play-overlay::after { content: '▶'; margin-left: 4px; }
+        .player-wrapper:active .play-overlay { transform: translate(-50%, -50%) scale(0.9); }
+        .controls-area { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; background: var(--card-glass); padding: 10px 14px; border-radius: 12px; border: 1px solid var(--card-border); }
+        .nav-btn { background: rgba(255,255,255,0.05); border: none; color: white; width: 36px; height: 36px; border-radius: 10px; font-size: 18px; cursor: pointer; display:flex; align-items:center; justify-content:center; transition: background 0.2s; }
+        .nav-btn:active { background: var(--stranger-red); }
+        #video-title-text { font-family: 'Benguiat ITC', serif; font-size: 14px; color: #eee; letter-spacing: 0.5px; }
+
+        /* OTHER PAGE STYLES */
+        .other-card {
+            background: var(--card-glass); border: 1px solid var(--card-border);
+            border-radius: 16px; padding: 25px 20px; margin-bottom: 20px;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            backdrop-filter: blur(10px);
         }
-        .db-day { font-size: 18px; font-weight: 800; color: white; line-height: 1; margin-bottom: 2px; }
-        .db-month { font-size: 9px; font-weight: 700; color: #888; text-transform: uppercase; }
-        .available-text { font-family: 'Inter', sans-serif; font-weight: 800; font-size: 12px; color: #0f0; text-shadow: 0 0 10px rgba(0, 255, 0, 0.5); letter-spacing: 1px; text-transform: uppercase; }
+        .other-icon-box {
+            width: 60px; height: 60px; border-radius: 50%;
+            background: rgba(255, 9, 9, 0.1); border: 1px solid var(--stranger-red);
+            display: flex; justify-content: center; align-items: center;
+            margin-bottom: 15px; color: var(--stranger-red);
+            box-shadow: 0 0 15px rgba(255, 9, 9, 0.2); transition: 0.3s;
+        }
+        .other-title { font-family: 'Benguiat ITC', serif; font-size: 18px; margin-bottom: 8px; color: white; }
+        .other-text { font-size: 13px; color: var(--text-gray); margin-bottom: 20px; line-height: 1.5; }
+        
+        .action-btn {
+            background: var(--stranger-red); color: white; border: none;
+            padding: 14px 24px; border-radius: 12px; font-weight: 800; font-size: 14px;
+            width: 100%; cursor: pointer; transition: all 0.2s;
+            box-shadow: 0 5px 15px rgba(255, 9, 9, 0.3);
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .action-btn:active { transform: scale(0.98); opacity: 0.9; }
+        .action-btn.secondary { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.2); box-shadow: none; }
+        .action-btn.active { background: #00ff44; color: #000; box-shadow: 0 0 15px #00ff44; text-shadow: none; }
 
         /* EPISODES PAGE */
-        #episodes-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 50; flex-direction: column; padding: 20px 16px; box-sizing: border-box; overflow-y: auto; animation: slideIn 0.3s ease-out; }
+        #episodes-page { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background-color: var(--bg-black);
+            background-image: radial-gradient(circle at 50% 30%, #1a0505 0%, #000000 80%);
+            z-index: 2000; flex-direction: column; 
+            padding: 20px 16px; box-sizing: border-box; overflow-y: auto; 
+            animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        .custom-back-btn { background: transparent; border: none; color: #888; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 5px; cursor: pointer; margin-bottom: 10px; padding: 5px 0; width: fit-content; }
-        .ep-header { margin-bottom: 20px; text-align: center; border-bottom: 1px solid #333; padding-bottom: 15px; }
-        .ep-header h2 { margin: 0; font-size: 22px; color: white; }
-        .ep-header span { font-size: 12px; color: var(--current-glow); text-transform: uppercase; }
+        
+        .custom-back-btn { 
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); color: #fff; 
+            padding: 10px 18px; border-radius: 30px; backdrop-filter: blur(5px);
+            font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; 
+            cursor: pointer; margin-bottom: 20px; width: fit-content; transition: 0.2s;
+        }
+        .custom-back-btn:active { background: rgba(255,9,9,0.3); border-color: var(--stranger-red); }
+
+        .ep-header { margin-bottom: 30px; text-align: center; }
+        .ep-header h2 { margin: 5px 0 0; font-size: 28px; color: white; font-family: 'Benguiat ITC', serif; letter-spacing: 1px; text-shadow: 0 0 10px rgba(255,0,0,0.3); }
+        .ep-header span { font-size: 11px; color: var(--stranger-red); text-transform: uppercase; letter-spacing: 2px; font-weight: 800; }
+        
         .episode-list { display: flex; flex-direction: column; gap: 15px; }
-        .episode-card { display: flex; align-items: center; gap: 15px; background: #111; padding: 10px; border-radius: 8px; border: 1px solid #222; cursor: pointer; }
-        .ep-preview { width: 100px; height: 60px; background: #222; border-radius: 4px; position: relative; overflow: hidden; flex-shrink: 0; }
-        .ep-preview::after { content: '▶'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #555; font-size: 20px; }
+        .episode-card { 
+            display: flex; align-items: center; gap: 15px; 
+            background: var(--card-glass); padding: 14px; border-radius: 14px; 
+            border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer; transition: all 0.2s;
+        }
+        .episode-card:active { border-color: var(--stranger-red); background: rgba(40, 0, 0, 0.6); transform: scale(0.98); }
+        .ep-preview { 
+            width: 90px; height: 56px; background: #222; border-radius: 8px; 
+            position: relative; overflow: hidden; flex-shrink: 0; 
+            background-image: url('https://d13ezvd6yrslxm.cloudfront.net/wp/wp-content/images/stranger-things-season-5-poster-700x394.jpg');
+            background-size: cover; opacity: 0.8; box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        .ep-preview::after { content: '▶'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 16px; text-shadow: 0 0 5px black; }
         .ep-details { flex-grow: 1; }
-        .ep-num { font-size: 10px; color: var(--current-glow); font-weight: 700; margin-bottom: 2px; }
-        .ep-title { font-size: 14px; color: white; font-weight: 600; line-height: 1.2; margin-bottom: 4px; }
-        .ep-dur { font-size: 11px; color: #666; }
+        .ep-num { font-size: 10px; color: var(--stranger-red); font-weight: 800; margin-bottom: 3px; letter-spacing: 0.5px; text-transform: uppercase; }
+        .ep-title { font-size: 15px; color: white; font-weight: 600; line-height: 1.2; margin-bottom: 4px; font-family: 'Benguiat ITC', serif; letter-spacing: 0.5px; }
+        .ep-dur { font-size: 11px; color: #888; font-weight: 500; }
 
-        /* --- CINEMA MODE (HYBRID PLAYER) --- */
-        #cinema-mode {
-            display: none; 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100%; height: 100%;
-            background: #000; 
-            z-index: 2000;
-            flex-direction: column; 
-            justify-content: center;
-            align-items: center;
-        }
+        /* CINEMA/MODAL/WALL */
+        #cinema-mode { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; flex-direction: column; justify-content: center; align-items: center; }
+        .cinema-close-btn { position: absolute; top: max(20px, env(safe-area-inset-top)); right: 20px; z-index: 5010; background: rgba(30, 30, 30, 0.8); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px 18px; border-radius: 20px; cursor: pointer; backdrop-filter: blur(10px); font-size: 12px; font-weight: 700; }
+        .cinema-player-box { width: 100%; height: 100%; position: relative; display:flex; justify-content:center; align-items:center; background:#000; }
+        video#cinema-video, iframe#cinema-iframe { width: 100%; height: 100%; border: none; background: #000; }
+        .rescue-btn { position: absolute; bottom: 18%; left: 50%; transform: translateX(-50%); z-index: 5020; background: rgba(255, 9, 9, 0.15); border: 1px solid var(--stranger-red); color: #fff; padding: 10px 24px; border-radius: 30px; font-size: 12px; font-weight: bold; display: flex; gap: 8px; align-items: center; cursor: pointer; box-shadow: 0 0 20px rgba(255,9,9,0.3); backdrop-filter: blur(5px); animation: pulseRescue 3s infinite; }
+        @keyframes pulseRescue { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } }
+        .cinema-controls { position: absolute; bottom: 40px; width: 90%; max-width: 500px; display: flex; justify-content: space-between; align-items: center; background: rgba(20,20,20,0.8); padding: 15px; border-radius: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .cinema-title { font-size: 14px; font-weight: bold; color: white; margin-bottom: 2px; font-family: 'Benguiat ITC', serif; }
+        .cinema-subtitle { font-size: 11px; color: var(--stranger-red); font-weight: 700; letter-spacing: 1px; }
 
-        .cinema-close-btn {
-            position: absolute; 
-            top: max(20px, env(safe-area-inset-top)); 
-            right: 20px; 
-            z-index: 2010;
-            background: rgba(20, 20, 20, 0.8); 
-            border: 1px solid var(--stranger-red);
-            color: #fff; 
-            padding: 12px 20px; 
-            border-radius: 12px; 
-            cursor: pointer;
-            backdrop-filter: blur(5px); 
-            font-weight: bold; 
-            font-size: 14px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.7);
-        }
-
-        .cinema-player-box {
-            width: 100%; 
-            height: 100%; 
-            background: #000 url('https://d13ezvd6yrslxm.cloudfront.net/wp/wp-content/images/stranger-things-season-5-poster-700x394.jpg') no-repeat center center;
-            background-size: contain; /* Чтобы постер был виден, если видео не грузится */
-            position: relative;
-            z-index: 2005;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* ВИДЕО ТЕГ (ДЛЯ ПРЯМЫХ MP4) */
-        video#cinema-video {
-            width: 100%; height: 100%; object-fit: contain; background: black; z-index: 2005; display: none;
-        }
-        
-        /* IFRAME (ДЛЯ PIXELDRAIN) */
-        iframe#cinema-iframe {
-            width: 100%; height: 100%; border: none; background: black; z-index: 2005; display: none;
-        }
-        
-        /* КНОПКА СПАСЕНИЯ */
-        .rescue-btn {
-            position: absolute;
-            bottom: 15%; /* Чуть выше контролов */
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 2020;
-            background: #222;
-            border: 2px solid var(--stranger-red);
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: bold;
-            display: flex; gap: 8px; align-items: center;
-            cursor: pointer;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
-            animation: pulseRescue 3s infinite;
-            white-space: nowrap;
-        }
-        @keyframes pulseRescue { 0% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } 100% { transform: translateX(-50%) scale(1); } }
-
-        .cinema-controls {
-            position: absolute; bottom: 30px;
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            width: 90%;
-            max-width: 500px;
-            padding: 20px 0; 
-            color: white; 
-            z-index: 2010;
-            background: rgba(0,0,0,0.5);
-            border-radius: 20px;
-            backdrop-filter: blur(5px);
-        }
-        .cinema-info { text-align: center; flex-grow: 1; padding: 0 10px; }
-        .cinema-title { font-size: 16px; font-weight: bold; color: var(--current-glow); margin-bottom: 5px; line-height: 1.3; }
-        .cinema-subtitle { font-size: 12px; color: #888; }
-        
-        .cinema-controls .nav-btn { width: 40px; height: 40px; font-size: 20px; }
-
-        /* SUBSCRIPTION MODAL */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 3000; justify-content: center; align-items: center;
-            backdrop-filter: blur(5px);
-        }
-        .modal-box {
-            background: #111; border: 1px solid var(--stranger-red); width: 85%; max-width: 320px;
-            padding: 25px; border-radius: 16px; text-align: center;
-            box-shadow: 0 0 30px rgba(255, 9, 9, 0.2); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 6000; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
+        .modal-box { background: #121212; border: 1px solid var(--stranger-red); width: 85%; max-width: 320px; padding: 30px; border-radius: 20px; text-align: center; box-shadow: 0 0 50px rgba(255, 9, 9, 0.15); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .modal-title { color: var(--stranger-red); font-family: 'Benguiat ITC', serif; font-size: 18px; margin-bottom: 10px; letter-spacing: 1px; }
-        .modal-text { font-size: 13px; color: #ccc; margin-bottom: 20px; line-height: 1.4; }
-        .channel-preview { background: #222; padding: 10px; border-radius: 8px; font-weight: 700; color: white; margin-bottom: 20px; border: 1px dashed #444; }
-        .modal-btn { display: block; width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: 700; margin-bottom: 10px; cursor: pointer; font-size: 14px; }
+        .modal-title { color: var(--stranger-red); font-family: 'Benguiat ITC', serif; font-size: 20px; margin-bottom: 15px; }
+        .channel-preview { background: #1f1f1f; padding: 12px; border-radius: 10px; color: white; margin-bottom: 20px; font-weight: 600; border: 1px dashed #444; }
+        .modal-btn { display: block; width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 700; margin-bottom: 12px; cursor: pointer; font-size: 14px; transition: opacity 0.2s; }
+        .modal-btn:active { opacity: 0.8; }
         .btn-sub { background: #0088cc; color: white; }
         .btn-check { background: transparent; border: 1px solid #444; color: #888; }
 
-        /* THE WALL */
-        #wall-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 300;
-            background-color: #2c2117;
-            background-image: 
-                radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.95) 100%),
-                url('https://www.transparenttextures.com/patterns/shattered-island.png');
-            background-size: cover, 300px;
-            flex-direction: column; justify-content: center; align-items: center;
-            animation: fadeInWall 2s ease forwards;
-        }
+        #wall-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 300; background-color: #1a1510; background-image: radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.95) 100%), url('https://www.transparenttextures.com/patterns/shattered-island.png'); background-size: cover, 300px; flex-direction: column; justify-content: center; align-items: center; animation: fadeInWall 1s ease forwards; }
         @keyframes fadeInWall { 0% { opacity: 0; } 100% { opacity: 1; } }
-
-        .wall-container { position: relative; width: 90%; max-width: 400px; padding: 20px 0; }
+        .wall-container { position: relative; width: 95%; max-width: 400px; padding: 20px 0; }
         #wires-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
-        .wire-path { fill: none; stroke: #111; stroke-width: 2px; stroke-linecap: round; filter: drop-shadow(0 1px 1px rgba(255,255,255,0.1)); }
-        .wall-row { display: flex; justify-content: space-between; padding: 0 10px; margin-bottom: 60px; position: relative; z-index: 2; }
+        .wire-path { fill: none; stroke: #111; stroke-width: 3px; stroke-linecap: round; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
+        .wall-row { display: flex; justify-content: space-between; padding: 0 10px; margin-bottom: 50px; position: relative; z-index: 2; }
         .letter-wrapper { position: relative; display: flex; flex-direction: column; align-items: center; width: 30px; }
-        .bulb {
-            width: 14px; height: 14px; border-radius: 50%;
-            margin-bottom: 15px; position: relative;
-            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.3); transition: all 0.1s; opacity: 0.4;
-        }
-        .bulb::before { content: ''; position: absolute; top: -4px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; background: #1a1a1a; border-radius: 2px; }
-        .bulb.active { opacity: 1; transform: scale(1.2); filter: brightness(1.5); }
-        .bulb.active::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 4px; height: 4px; background: #fff; border-radius: 50%; box-shadow: 0 0 4px #fff; }
-        .wall-char { font-family: 'Permanent Marker', cursive; font-size: 28px; color: #000; line-height: 1; transform: rotate(var(--r)); text-shadow: 0 0 1px rgba(0,0,0,0.5); }
+        .bulb { width: 16px; height: 16px; border-radius: 50%; margin-bottom: 15px; position: relative; box-shadow: inset -2px -2px 4px rgba(0,0,0,0.3); opacity: 0.3; }
+        .bulb.active { opacity: 1; transform: scale(1.3); filter: brightness(1.8); }
+        .bulb.active::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 6px; height: 6px; background: #fff; border-radius: 50%; box-shadow: 0 0 8px #fff; }
+        .wall-char { font-family: 'Permanent Marker', cursive; font-size: 26px; color: #000; line-height: 1; transform: rotate(var(--r)); }
+        .b-red { background-color: #ff0000; } .b-red.active { box-shadow: 0 0 30px #ff0000; }
+        .b-blue { background-color: #0088ff; } .b-blue.active { box-shadow: 0 0 30px #0088ff; }
+        .b-yellow { background-color: #ffcc00; } .b-yellow.active { box-shadow: 0 0 30px #ffcc00; }
+        .b-green { background-color: #00ff44; } .b-green.active { box-shadow: 0 0 30px #00ff44; }
+        .b-pink { background-color: #ff44ff; } .b-pink.active { box-shadow: 0 0 30px #ff44ff; }
+        .close-wall-hint { position: absolute; bottom: 40px; color: rgba(255,255,255,0.4); font-size: 12px; }
 
-        .b-red { background-color: #ff0000; border: 1px solid #880000; }
-        .b-red.active { box-shadow: 0 0 20px #ff0000, 0 0 60px #ff0000; }
-        .b-blue { background-color: #0088ff; border: 1px solid #004488; }
-        .b-blue.active { box-shadow: 0 0 20px #0088ff, 0 0 60px #0088ff; }
-        .b-yellow { background-color: #ffcc00; border: 1px solid #997700; }
-        .b-yellow.active { box-shadow: 0 0 20px #ffcc00, 0 0 60px #ffcc00; }
-        .b-green { background-color: #00ff44; border: 1px solid #005511; }
-        .b-green.active { box-shadow: 0 0 20px #00ff44, 0 0 60px #00ff44; }
-        .b-pink { background-color: #ff44ff; border: 1px solid #880088; }
-        .b-pink.active { box-shadow: 0 0 20px #ff44ff, 0 0 60px #ff44ff; }
-        .close-wall-hint { position: absolute; bottom: 30px; width: 100%; text-align: center; color: rgba(255,255,255,0.3); font-size: 12px; font-family: 'Inter'; pointer-events: none; }
-
-        @keyframes introSequence { 0% { opacity: 0; } 10% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; } }
-        @keyframes expandBar { 0% { width: 0%; opacity: 0; } 50% { width: 60%; opacity: 1; } 100% { width: 80%; opacity: 0; } }
     </style>
 </head>
 <body>
     <audio id="bg-music" src="https://orangefreesounds.com/wp-content/uploads/2023/02/Creepy-grandfather-clock-sound.mp3" loop></audio>
     <audio id="buzz-sound" src="https://www.soundjay.com/mechanical/sounds/electric-buzz-01.mp3"></audio>
 
-    <!-- CINEMA MODE (HYBRID PLAYER) -->
     <div id="cinema-mode">
         <div class="cinema-close-btn" onclick="closeCinema()">✕ ЗАКРЫТЬ</div>
-        
         <div class="cinema-player-box">
-            <!-- ВАРИАНТ 1: Native MP4 -->
             <video id="cinema-video" controls playsinline controlsList="nodownload"></video>
-            
-            <!-- ВАРИАНТ 2: Iframe (Pixeldrain) -->
             <iframe id="cinema-iframe" allowfullscreen allow="autoplay; fullscreen"></iframe>
-            
-            <!-- КНОПКА СПАСЕНИЯ (ВИДНА ВСЕГДА В РЕЖИМЕ PIXELDRAIN) -->
-            <div id="rescue-btn" class="rescue-btn" onclick="openExternal()" style="display:none;">
-                ⚠️ НЕ ГРУЗИТ? ЖМИ СЮДА
-            </div>
+            <div id="rescue-btn" class="rescue-btn" onclick="openExternal()" style="display:none;">⚠️ НЕ ГРУЗИТ? ЖМИ СЮДА</div>
         </div>
-        
         <div class="cinema-controls">
             <button class="nav-btn" onclick="changeCinemaEpisode(-1)">‹</button>
-            <div class="cinema-info">
+            <div style="text-align:center;">
                 <div class="cinema-title" id="cinema-title">Название серии</div>
                 <div class="cinema-subtitle" id="cinema-sub">5 СЕЗОН</div>
             </div>
@@ -356,18 +279,16 @@
         </div>
     </div>
 
-    <!-- SUBSCRIPTION MODAL -->
     <div id="sub-modal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-title">ДОСТУП ОГРАНИЧЕН</div>
-            <p class="modal-text">Для просмотра эпизода необходимо подписаться на канал</p>
+            <p style="font-size: 13px; color: #ccc; margin-bottom: 20px; line-height: 1.5;">Для просмотра эпизода необходимо подписаться на канал</p>
             <div class="channel-preview" id="modal-chan-name">@channel</div>
             <button class="modal-btn btn-sub" onclick="doSubscribe()">ПОДПИСАТЬСЯ</button>
             <button class="modal-btn btn-check" onclick="checkSubscription()">Я ПОДПИСАЛСЯ</button>
         </div>
     </div>
 
-    <!-- WALL OVERLAY -->
     <div id="wall-overlay" onclick="closeWall()">
         <div class="wall-container" id="wall-container">
             <svg id="wires-svg"></svg>
@@ -379,8 +300,8 @@
     </div>
 
     <button class="sound-toggle muted" id="sound-btn" onclick="toggleSound()">
-        <svg id="icon-muted" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
-        <svg id="icon-sound" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        <svg id="icon-muted" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+        <svg id="icon-sound" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
     </button>
 
     <canvas id="upside-down-canvas"></canvas>
@@ -395,7 +316,6 @@
         <div class="bar"></div>
     </div>
 
-    <!-- EPISODES LIST -->
     <div id="episodes-page">
         <button class="custom-back-btn" onclick="closePart()"><span>←</span> НАЗАД</button>
         <div class="ep-header">
@@ -405,7 +325,8 @@
         <div class="episode-list" id="episode-list-container"></div>
     </div>
 
-    <div id="main-app">
+    <!-- MAIN PAGE -->
+    <div id="main-app" class="page-container active-page">
         <div class="app-header">
             <div class="header-logo stranger-font" id="logo-trigger">
                 <span class="line l1">ОЧЕНЬ</span>
@@ -416,14 +337,13 @@
 
         <div class="countdown-banner">
             <div class="banner-content">
-                <div class="banner-label" id="timer-label">До премьеры 5 сезона</div>
+                <div class="banner-label" id="timer-label">ДО ВЫХОДА ФИНАЛЬНОЙ СЕРИИ</div>
                 <div class="countdown-timer" id="timer">00 : 00 : 00 : 00</div>
-                <div class="countdown-subtext" id="release-date-text">26 ноября 2025 • 17:00 (PT)</div>
+                <div class="countdown-subtext" id="release-date-text">31 декабря 2025 • 17:00 (PT)</div>
             </div>
         </div>
 
-        <!-- MOVED SCHEDULE TO TOP -->
-        <div class="section-title" id="schedule-title" style="margin-top: 0;">Смотреть</div>
+        <div class="section-title" id="schedule-title" style="margin-top: 10px;">Сезоны</div>
         <div class="dates-grid">
             <div class="date-card" id="card-part-1" onclick="openPart(1)">
                 <div class="date-info"><h3>Часть 1 (4 серии)</h3><p>Начало конца</p></div>
@@ -439,68 +359,92 @@
             </div>
         </div>
 
-        <!-- TRAILERS MOVED BELOW -->
-        <div class="section-title">Трейлеры</div>
+        <div class="section-title">Материалы</div>
         <div class="player-section">
             <div class="player-wrapper" id="player-trigger" onclick="playCurrentTrailer()">
-                <div class="play-overlay">▶</div>
+                <div class="play-overlay"></div>
             </div>
             <div class="controls-area">
                 <button class="nav-btn" onclick="changeTrailer(-1)">‹</button>
-                <div style="color:#ccc; font-size:13px;" id="video-title-text">Загрузка...</div>
+                <div id="video-title-text">Загрузка...</div>
                 <button class="nav-btn" onclick="changeTrailer(1)">›</button>
             </div>
+        </div>
+    </div>
+
+    <!-- OTHER PAGE -->
+    <div id="other-page" class="page-container">
+        <div class="app-header">
+            <div class="header-logo stranger-font">
+                <span class="line l1">МЕНЮ</span>
+                <span class="line l2">ДРУГОЕ</span>
+            </div>
+        </div>
+
+        <div class="other-card">
+            <div class="other-icon-box" id="notif-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            </div>
+            <div class="other-title" id="notif-title">УВЕДОМЛЕНИЯ</div>
+            <div class="other-text" id="notif-text">
+                Включи уведомления, чтобы не пропустить выход финальной серии и новые трейлеры. Бот напишет тебе лично!
+            </div>
+            <button class="action-btn" id="notif-btn" onclick="toggleNotifications()">ВКЛЮЧИТЬ УВЕДОМЛЕНИЯ</button>
+        </div>
+
+        <div class="other-card">
+            <div class="other-icon-box" style="color:#0088ff; border-color:#0088ff; box-shadow:0 0 15px rgba(0,136,255,0.2);">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"></path><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </div>
+            <div class="other-title">СЛЕДИ ЗА НОВОСТЯМИ</div>
+            <div class="other-text">
+                Подпишись на наш канал, чтобы следить за новостями по ОСД и обновлениями нашего бота!
+            </div>
+            <button class="action-btn secondary" onclick="openNewsChannel()">ПЕРЕЙТИ В КАНАЛ</button>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="bottom-nav" id="bottom-nav">
+        <div class="nav-item active" id="tab-home" onclick="switchTab('home')">
+            <div class="nav-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>
+            <div class="nav-label">ГЛАВНОЕ</div>
+        </div>
+        <div class="nav-item" id="tab-other" onclick="switchTab('other')">
+            <div class="nav-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg></div>
+            <div class="nav-label">ДРУГОЕ</div>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
-        tg.expand(); tg.setHeaderColor('#000000'); tg.setBackgroundColor('#000000');
+        tg.expand(); tg.setHeaderColor('#050505'); tg.setBackgroundColor('#050505');
         function vibration() { if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); }
 
-        const opChannels = [
-            "strangerthingsfiveseason",       
-            "https://t.me/+azpZxcHVlM41OTYy", 
-            "https://t.me/+TNUIMbVjwRY3MWFi", 
-            "https://t.me/+WnyT5bC4t_VjNzQy", 
-            "https://t.me/+ligUp6pRCXtlZTky"  
-        ];
-        
+        const opChannels = [ "strangerthingsfiveseason", "https://t.me/+azpZxcHVlM41OTYy", "https://t.me/+TNUIMbVjwRY3MWFi", "https://t.me/+WnyT5bC4t_VjNzQy", "https://t.me/+ligUp6pRCXtlZTky" ];
         const todayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
         const currentAutoChannel = opChannels[todayIndex % opChannels.length];
 
         const config = {
             requiredChannel: currentAutoChannel,
+            newsChannel: "https://t.me/strangerthingsfiveseason",
             epLinks: {
                 1: { url: "https://t.me/strangerthingsfiveseason/17", title: "Глава 1: Ползание" },
                 2: { url: "https://t.me/strangerthingsfiveseason/19", title: "Глава 2: Исчезновение" },
                 3: { url: "https://t.me/strangerthingsfiveseason/20", title: "Глава 3: Ловушка" },
                 4: { url: "https://t.me/strangerthingsfiveseason/21", title: "Глава 4: Колдун" },
-                
-                // PIXELDRAIN LINKS
                 5: { url: "https://pixeldrain.com/u/NHFBNcGA", title: "Глава 5: Шоковая терапия" },
                 6: { url: "https://pixeldrain.com/u/hKeNyrXj", title: "Глава 6: Побег из Камазотц" },
                 7: { url: "https://pixeldrain.com/u/AbCP8EHM", title: "Глава 7: Мост" },
-                
                 8: { url: "", title: "Глава 8" }
             },
             trailerLinks: [
-                {
-                    title: "Трейлер 5 сезона (Тизер)",
-                    poster: "https://images.ctfassets.net/4cd45et68cgf/5QQ9QVyTXgnYGTdrnrJLcd/318041d404d528b846e6a39433436322/Stranger_Things_Season_5_Logo.jpg",
-                    link: "https://t.me/strangerthingsfiveseason/5"
-                },
-                {
-                    title: "Видео со съемок",
-                    poster: "https://d13ezvd6yrslxm.cloudfront.net/wp/wp-content/images/stranger-things-season-5-poster-700x394.jpg",
-                    link: "https://t.me/strangerthingsfiveseason" 
-                }
+                { title: "Трейлер 5 сезона (Тизер)", poster: "https://images.ctfassets.net/4cd45et68cgf/5QQ9QVyTXgnYGTdrnrJLcd/318041d404d528b846e6a39433436322/Stranger_Things_Season_5_Logo.jpg", link: "https://t.me/strangerthingsfiveseason/5" },
+                { title: "Видео со съемок", poster: "https://d13ezvd6yrslxm.cloudfront.net/wp/wp-content/images/stranger-things-season-5-poster-700x394.jpg", link: "https://t.me/strangerthingsfiveseason" }
             ]
         };
         
-        console.log("Сегодняшний канал:", config.requiredChannel);
-
         const splash = document.getElementById('splash-screen');
         const app = document.getElementById('main-app');
         const epPage = document.getElementById('episodes-page');
@@ -508,9 +452,87 @@
         setTimeout(() => {
             splash.style.display = 'none'; app.style.display = 'block';
             setTimeout(() => app.style.opacity = '1', 50);
-            checkDates(); applyConfig(); setupWall();
+            checkDates(); applyConfig(); setupWall(); checkNotifState();
             document.body.addEventListener('click', initAudioContext, { once: true });
         }, 3800);
+
+        // --- NEW TAB LOGIC ---
+        function switchTab(tab) {
+            vibration();
+            // Скрываем/Показываем через display, чтобы избежать наложений
+            if (tab === 'home') {
+                document.getElementById('main-app').style.display = 'block';
+                document.getElementById('other-page').style.display = 'none';
+                setTimeout(()=>document.getElementById('main-app').classList.add('active-page'),10);
+                document.getElementById('other-page').classList.remove('active-page');
+                
+                document.getElementById('tab-home').classList.add('active');
+                document.getElementById('tab-other').classList.remove('active');
+            } else {
+                document.getElementById('main-app').style.display = 'none';
+                document.getElementById('other-page').style.display = 'block';
+                setTimeout(()=>document.getElementById('other-page').classList.add('active-page'),10);
+                document.getElementById('main-app').classList.remove('active-page');
+
+                document.getElementById('tab-other').classList.add('active');
+                document.getElementById('tab-home').classList.remove('active');
+            }
+        }
+
+        function openNewsChannel() { vibration(); tg.openTelegramLink(config.newsChannel); }
+
+        // --- NOTIFICATION LOGIC (TOGGLE) ---
+        function checkNotifState() {
+            const status = localStorage.getItem('notif_status');
+            updateNotifUI(status === 'active');
+        }
+
+        function toggleNotifications() {
+            vibration();
+            const current = localStorage.getItem('notif_status');
+            
+            if (current === 'active') {
+                // Выключаем
+                localStorage.setItem('notif_status', 'inactive');
+                updateNotifUI(false);
+            } else {
+                // Включаем
+                if (!tg.requestWriteAccess) {
+                    // Старая версия ТГ, просто сохраняем
+                    localStorage.setItem('notif_status', 'active');
+                    updateNotifUI(true);
+                    return;
+                }
+                tg.requestWriteAccess((allowed) => {
+                    if (allowed) {
+                        localStorage.setItem('notif_status', 'active');
+                        updateNotifUI(true);
+                    }
+                });
+            }
+        }
+
+        function updateNotifUI(isActive) {
+            const btn = document.getElementById('notif-btn');
+            const icon = document.getElementById('notif-icon');
+            const text = document.getElementById('notif-text');
+            
+            if (isActive) {
+                btn.classList.add('active');
+                btn.innerText = "УВЕДОМЛЕНИЯ ВКЛЮЧЕНЫ";
+                icon.style.color = "#00ff44";
+                icon.style.borderColor = "#00ff44";
+                icon.style.boxShadow = "0 0 15px rgba(0,255,68,0.2)";
+                text.innerText = "Вы успешно подписались на уведомления. Мы сообщим вам, когда выйдет финальная серия.";
+            } else {
+                btn.classList.remove('active');
+                btn.innerText = "ВКЛЮЧИТЬ УВЕДОМЛЕНИЯ";
+                icon.style.color = "var(--stranger-red)";
+                icon.style.borderColor = "var(--stranger-red)";
+                icon.style.boxShadow = "0 0 15px rgba(255,9,9,0.2)";
+                text.innerText = "Включи уведомления, чтобы не пропустить выход финальной серии и новые трейлеры. Бот напишет тебе лично!";
+            }
+        }
 
         const bgAudio = document.getElementById('bg-music');
         const buzzAudio = document.getElementById('buzz-sound');
@@ -574,11 +596,7 @@
                 const x = rect.left + rect.width/2 - containerRect.left;
                 const y = rect.top + rect.height/2 - containerRect.top;
                 if (index === 0) pathD += `M ${x} ${y} `;
-                else {
-                    const cX = (prevX + x) / 2;
-                    const cY = Math.max(prevY, y) + 20 + Math.random()*10;
-                    pathD += `Q ${cX} ${cY}, ${x} ${y} `;
-                }
+                else { const cX = (prevX + x) / 2; const cY = Math.max(prevY, y) + 20 + Math.random()*10; pathD += `Q ${cX} ${cY}, ${x} ${y} `; }
                 prevX = x; prevY = y;
             });
             const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -608,32 +626,25 @@
                 const wrapper = document.getElementById(`char-${char}`);
                 if (wrapper) {
                     const bulb = wrapper.querySelector('.bulb');
-                    messageTimeouts.push(setTimeout(() => {
-                        bulb.classList.add('active'); playBuzz();
-                        if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-                    }, delay));
+                    messageTimeouts.push(setTimeout(() => { bulb.classList.add('active'); playBuzz(); if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium'); }, delay));
                     messageTimeouts.push(setTimeout(() => { bulb.classList.remove('active'); }, delay + 800));
                     delay += 1200;
                 }
             });
         }
 
-        const targetGlobal = new Date("2025-11-26T17:00:00-08:00");
-        document.getElementById('release-date-text').innerText = targetGlobal.toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) + " (Ваше время)";
+        const dates = { 1: new Date(2025,10,26,17,0,0), 2: new Date(2025,11,25,17,0,0), 3: new Date(2025,11,31,17,0,0) };
+        const finaleDate = dates[3]; // 31 дек 2025
+        
+        document.getElementById('release-date-text').innerText = finaleDate.toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) + " (Ваше время)";
 
-        // --- TRAILER PLAYER (INLINE) ---
         const playerWrapper = document.getElementById('player-trigger');
         const titleText = document.getElementById('video-title-text');
         let currentIdx = 0;
 
         function applyConfig() {
             const activeTrailers = config.trailerLinks || [];
-            if(activeTrailers.length > 0) { 
-                currentIdx = 0; 
-                loadTrailer(0); 
-            } else {
-                titleText.innerText = "Трейлеров нет";
-            }
+            if(activeTrailers.length > 0) { currentIdx = 0; loadTrailer(0); } else { titleText.innerText = "Трейлеров нет"; }
         }
 
         function loadTrailer(index) {
@@ -662,9 +673,7 @@
             loadTrailer(currentIdx);
         }
 
-        // --- CINEMA MODE (HYBRID PLAYER LOGIC) ---
-        let currentCinemaEp = 1;
-        let currentVideoUrl = "";
+        let currentCinemaEp = 1; let currentVideoUrl = "";
         const cinemaOverlay = document.getElementById('cinema-mode');
         const cinemaVideo = document.getElementById('cinema-video');
         const cinemaIframe = document.getElementById('cinema-iframe');
@@ -673,121 +682,41 @@
 
         function openCinema(epId, force = false) {
             if (!force && !checkSubRequirement(epId)) return;
-
             currentCinemaEp = epId;
             const epData = config.epLinks[epId];
-            if (!epData || !epData.url) {
-                alert("Эта серия еще недоступна.");
-                return;
-            }
-
+            if (!epData || !epData.url) { alert("Эта серия еще недоступна."); return; }
             vibration();
             cinemaTitle.innerText = epData.title;
             currentVideoUrl = epData.url;
-            
-            // Если ссылка на Телеграм пост
-            if (epData.url.includes("t.me")) {
-                tg.openTelegramLink(epData.url);
-                return;
-            }
-
-            // ПРОВЕРКА: PIXELDRAIN
+            if (epData.url.includes("t.me")) { tg.openTelegramLink(epData.url); return; }
             if (epData.url.includes("pixeldrain")) {
-                // Включаем режим IFRAME
                 let id = epData.url.split('/').pop();
                 if(id.includes('?')) id = id.split('?')[0];
-                
                 const embedUrl = `https://pixeldrain.com/u/${id}?embed`;
-                
-                cinemaVideo.style.display = 'none';
-                cinemaVideo.pause();
-                cinemaIframe.style.display = 'block';
-                cinemaIframe.src = embedUrl;
-                rescueBtn.style.display = 'flex'; // ПОКАЗЫВАЕМ СПАСИТЕЛЬНУЮ КНОПКУ
-                
+                cinemaVideo.style.display = 'none'; cinemaVideo.pause(); cinemaIframe.style.display = 'block'; cinemaIframe.src = embedUrl; rescueBtn.style.display = 'flex'; 
             } else {
-                // Включаем режим VIDEO (для других прямых MP4)
-                cinemaIframe.style.display = 'none';
-                cinemaIframe.src = "";
-                cinemaVideo.style.display = 'block';
-                cinemaVideo.src = epData.url;
-                cinemaVideo.play().catch(e=>{});
-                rescueBtn.style.display = 'none';
+                cinemaIframe.style.display = 'none'; cinemaIframe.src = ""; cinemaVideo.style.display = 'block'; cinemaVideo.src = epData.url; cinemaVideo.play().catch(e=>{}); rescueBtn.style.display = 'none';
             }
-            
-            cinemaOverlay.style.display = 'flex';
-            document.body.classList.add('modal-open'); 
-            closePart();
-            if(!isMuted) bgAudio.pause();
+            cinemaOverlay.style.display = 'flex'; document.body.classList.add('modal-open'); closePart(); if(!isMuted) bgAudio.pause();
         }
 
-        // Функция открытия внешней ссылки (в системном браузере)
-        function openExternal() {
-            if (currentVideoUrl) {
-                // tg.openLink гарантированно открывает Safari/Chrome
-                tg.openLink(currentVideoUrl);
-            }
-        }
+        function openExternal() { if (currentVideoUrl) tg.openLink(currentVideoUrl); }
+        function closeCinema() { vibration(); cinemaOverlay.style.display = 'none'; document.body.classList.remove('modal-open'); cinemaVideo.pause(); cinemaVideo.src = ''; cinemaIframe.src = ''; if(!isMuted) bgAudio.play(); }
+        function changeCinemaEpisode(dir) { vibration(); let nextEp = currentCinemaEp + dir; if (nextEp < 1) nextEp = 8; if (nextEp > 8) nextEp = 1; openCinema(nextEp); }
 
-        function closeCinema() {
-            vibration();
-            cinemaOverlay.style.display = 'none';
-            document.body.classList.remove('modal-open');
-            
-            cinemaVideo.pause();
-            cinemaVideo.src = '';
-            cinemaIframe.src = '';
-            
-            if(!isMuted) bgAudio.play();
-        }
-
-        function changeCinemaEpisode(dir) {
-            vibration();
-            let nextEp = currentCinemaEp + dir;
-            if (nextEp < 1) nextEp = 8;
-            if (nextEp > 8) nextEp = 1;
-            openCinema(nextEp); 
-        }
-
-        // --- ПОДПИСКА ---
         let pendingEpId = null;
-
         function checkSubRequirement(epId) {
             pendingEpId = epId;
             const chan = config.requiredChannel;
             const nameEl = document.getElementById('modal-chan-name');
             const subBtn = document.querySelector('.btn-sub');
-            
-            if (chan.startsWith('http')) {
-                nameEl.innerText = "КАНАЛ ПО ОСД";
-                subBtn.innerText = "ПОДАТЬ ЗАЯВКУ";
-            } else {
-                nameEl.innerText = "@" + chan;
-                subBtn.innerText = "ПОДПИСАТЬСЯ";
-            }
-            
+            if (chan.startsWith('http')) { nameEl.innerText = "КАНАЛ ПО ОСД"; subBtn.innerText = "ПОДАТЬ ЗАЯВКУ"; } else { nameEl.innerText = "@" + chan; subBtn.innerText = "ПОДПИСАТЬСЯ"; }
             document.getElementById('sub-modal').style.display = 'flex';
-            return false; // Блокируем
+            return false;
         }
 
-        function doSubscribe() { 
-            vibration();
-            const chan = config.requiredChannel;
-            if (chan.startsWith('http')) {
-                tg.openTelegramLink(chan);
-            } else {
-                tg.openTelegramLink("https://t.me/" + chan);
-            }
-        }
-
-        function checkSubscription() {
-            vibration(); 
-            document.getElementById('sub-modal').style.display = 'none';
-            if (pendingEpId) {
-                openCinema(pendingEpId, true);
-                pendingEpId = null;
-            }
-        }
+        function doSubscribe() { vibration(); const chan = config.requiredChannel; if (chan.startsWith('http')) { tg.openTelegramLink(chan); } else { tg.openTelegramLink("https://t.me/" + chan); } }
+        function checkSubscription() { vibration(); document.getElementById('sub-modal').style.display = 'none'; if (pendingEpId) { openCinema(pendingEpId, true); pendingEpId = null; } }
 
         setInterval(() => { document.body.classList.add('glitch-mode'); if(tg.HapticFeedback)tg.HapticFeedback.notificationOccurred('warning'); setTimeout(()=>document.body.classList.remove('glitch-mode'),400); }, 60000);
         
@@ -802,39 +731,48 @@
         function animP(){ctx.clearRect(0,0,canvas.width,canvas.height);for(let i=0;i<particlesArray.length;i++){particlesArray[i].update();particlesArray[i].draw();}requestAnimationFrame(animP);}
         window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;initP();});initP();animP();
 
-        const dates = { 1: new Date(2025,10,26,17,0,0), 2: new Date(2025,11,25,17,0,0), 3: new Date(2025,11,31,17,0,0) };
         function checkDates() {
             const now = new Date();
-            if(now>=dates[1]){ document.getElementById("schedule-title").innerText="Смотреть"; document.getElementById("timer-label").innerText="ПРЕМЬЕРА СОСТОЯЛАСЬ"; document.getElementById("timer").innerHTML="СМОТРИТЕ СЕЙЧАС"; }
             for(let i=1;i<=3;i++){ if(now>=dates[i]){ const b=document.getElementById(`badge-part-${i}`); if(b)b.outerHTML=`<div class="available-text">ДОСТУПНО</div>`; } }
         }
+
         function updateTimer(){
-            const now=new Date().getTime(), dist=dates[1].getTime()-now;
-            if(dist<0){checkDates();return;}
-            const d=Math.floor(dist/(1000*60*60*24)), h=Math.floor((dist%(1000*60*60*24))/(1000*60*60)), m=Math.floor((dist%(1000*60*60))/(1000*60));
-            document.getElementById("timer").innerHTML=`${d}:${h<10?'0'+h:h}:${m<10?'0'+m:m}:${Math.floor((dist%(1000*60))/1000)<10?'0'+Math.floor((dist%(1000*60))/1000):Math.floor((dist%(1000*60))/1000)}`;
-        } setInterval(updateTimer,1000); updateTimer();
+            const now = new Date().getTime();
+            const dist = finaleDate.getTime() - now; 
+
+            if(dist < 0){ 
+                document.getElementById("timer").innerHTML="ДОСТУПНО"; 
+                document.getElementById("timer").style.color="#0f0";
+                return; 
+            }
+            
+            const d=Math.floor(dist/(1000*60*60*24));
+            const h=Math.floor((dist%(1000*60*60*24))/(1000*60*60));
+            const m=Math.floor((dist%(1000*60*60))/(1000*60));
+            const s=Math.floor((dist%(1000*60))/1000);
+            
+            document.getElementById("timer").innerHTML=`${d}:${h<10?'0'+h:h}:${m<10?'0'+m:m}:${s<10?'0'+s:s}`;
+        } 
+        setInterval(updateTimer,1000); updateTimer();
 
         const seasonData = {
             1: { title: "ЧАСТЬ 1: НАЧАЛО", offset: 0, episodes: [ { name: "Глава 1: Ползание", duration: "55 мин" }, { name: "Глава 2: Исчезновение...", duration: "60 мин" }, { name: "Глава 3: Ловушка Тернбоу", duration: "58 мин" }, { name: "Глава 4: Колдун", duration: "65 мин" } ] },
             2: { title: "ЧАСТЬ 2: БИТВА", offset: 4, episodes: [ { name: "Глава 5: Шоковая терапия", duration: "62 мин" }, { name: "Глава 6: Побег из Камазотц", duration: "70 мин" }, { name: "Глава 7: Мост", duration: "75 мин" } ] },
             3: { title: "ЧАСТЬ 3: ФИНАЛ", offset: 7, episodes: [ { name: "Глава 8: Правая сторона", duration: "150 мин (Фильм)" } ] }
         };
+        
         function openPart(partId) {
             vibration(); const now = new Date(); const data = seasonData[partId];
             document.getElementById('ep-part-title').innerText = data.title;
             const listContainer = document.getElementById('episode-list-container'); listContainer.innerHTML = ''; 
+            
             data.episodes.forEach((ep, index) => {
                 const card = document.createElement('div'); card.className = 'episode-card';
                 const globalEpId = data.offset + index + 1;
                 
                 card.onclick = () => { 
                     vibration(); 
-                    if (now < dates[partId]) {
-                        alert('Этот эпизод еще не вышел!'); 
-                    } else {
-                        openCinema(globalEpId);
-                    }
+                    if (now < dates[partId]) { alert('Этот эпизод еще не вышел!'); } else { openCinema(globalEpId); }
                 };
                 card.innerHTML = `<div class="ep-preview"></div><div class="ep-details"><div class="ep-num">ЭПИЗОД ${globalEpId}</div><div class="ep-title">${ep.name}</div><div class="ep-dur">${ep.duration}</div></div>`;
                 listContainer.appendChild(card);
