@@ -45,7 +45,7 @@
             z-index: 1000; background-size: 100% 2px, 3px 100%; pointer-events: none; opacity: 0.6;
         }
 
-        /* --- SPLASH SCREEN (FIXED SIZES) --- */
+        /* --- SPLASH SCREEN --- */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle, #1a0000 0%, #000000 100%);
@@ -64,9 +64,8 @@
             -webkit-text-stroke: 1.5px var(--stranger-red); text-transform: uppercase;
             text-align: center; filter: drop-shadow(0 0 10px var(--stranger-red));
             line-height: 0.9; opacity: 0;
-            max-width: 95%; /* Чтобы не вылезало */
+            max-width: 95%;
         }
-        /* Уменьшил размеры шрифтов, чтобы влазило в экран */
         .sp-1 { font-size: 2.5rem; letter-spacing: 6px; margin-bottom: 5px; animation: fadeInText 1s ease forwards 0.2s; }
         .sp-2 { font-size: 3.2rem; letter-spacing: 0px; margin: 5px 0; animation: fadeInText 1s ease forwards 0.8s; }
         .sp-3 { font-size: 4.2rem; letter-spacing: 8px; margin-top: 5px; animation: fadeInText 1s ease forwards 1.4s; }
@@ -364,11 +363,10 @@
         tg.ready(); tg.expand(); tg.setHeaderColor('#050505'); tg.setBackgroundColor('#050505');
         function vibration() { if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); }
 
-        const opChannels = [ "strangerthingsfiveseason", "https://t.me/+azpZxcHVlM41OTYy" ];
-        const currentAutoChannel = opChannels[0];
-
+        // --- СПИСОК КАНАЛОВ ДЛЯ ПОДПИСКИ (Ротация по дням) ---
+        const opChannels = [ "strangerthingsfiveseason", "https://t.me/+azpZxcHVlM41OTYy" ]; // Добавь свои каналы сюда
+        
         const config = {
-            requiredChannel: currentAutoChannel,
             newsChannel: "https://t.me/strangerthingsfiveseason",
             botShareLink: "https://t.me/share/url?url=https://t.me/strangerthings_5_bot",
             trailerLinks: [
@@ -379,8 +377,8 @@
 
         // --- LINKS DATABASE ---
         // S1-4 = Rutube placeholder
-        // S5 1-4 = Telegram Links
-        // S5 5-8 = Pixeldrain Links (Ваша ссылка на 8-ю серию вставлена)
+        // S5 1-4 = Telegram
+        // S5 5-8 = Pixeldrain (8-я серия - твоя ссылка)
         const defaultRutube = "https://rutube.ru/play/embed/84990d1f11a41604a1b023910c270395"; 
         
         const linksDB = {
@@ -396,7 +394,7 @@
                 5: "https://pixeldrain.com/u/NHFBNcGA",
                 6: "https://pixeldrain.com/u/hKeNyrXj",
                 7: "https://pixeldrain.com/u/AbCP8EHM",
-                8: "https://pixeldrain.com/u/6vHmCZCD" // ВАША ССЫЛКА
+                8: "https://pixeldrain.com/u/6vHmCZCD" // ССЫЛКА НА ФИНАЛ
             }
         };
 
@@ -494,8 +492,10 @@
         let userHasClickedSub = false;
 
         function openCinema(globalId, title, subtitle) {
+            // 1. Проверка подписки (Один раз в день)
             if (!checkSubRequirement(globalId, title, subtitle)) return;
 
+            // 2. Получение ссылки
             const regex = /s(\d+)e(\d+)/; const m = globalId.match(regex);
             const s = `s${m[1]}`; const e = m[2];
             const link = linksDB[s] && linksDB[s][e];
@@ -503,56 +503,83 @@
             if(!link) { alert("Серия еще не загружена или удалена."); return; }
             vibration();
 
-            // 1. TELEGRAM LINKS (S5 E1-4)
+            // 3. ЛОГИКА ОТКРЫТИЯ ССЫЛОК
+            
+            // Если это Telegram ссылка (S5 E1-4) -> Открываем в ТГ
             if (link.includes("t.me")) {
                 tg.openTelegramLink(link);
                 return;
             }
 
             document.getElementById('cinema-title').innerText = title;
+            window.currentVideoUrl = link;
             
-            // 2. PIXELDRAIN LOGIC (S5 E5-8)
+            // Если это PixelDrain (S5 E5-8) -> Iframe
             let finalSrc = link;
             if (link.includes("pixeldrain")) {
                 let id = link.split('/').pop();
                 if(id.includes('?')) id = id.split('?')[0];
                 finalSrc = `https://pixeldrain.com/u/${id}?embed`;
             }
-
-            // 3. SET GLOBAL VIDEO URL FOR RESCUE BUTTON
-            window.currentVideoUrl = link;
+            // Если это Rutube (S1-4) -> Iframe (ссылка уже готовая)
 
             document.getElementById('cinema-iframe').src = finalSrc;
             document.getElementById('cinema-mode').style.display = 'flex';
         }
 
         function checkSubRequirement(vidId, title, sub) {
-            if (userHasClickedSub) return true;
+            // ПРОВЕРКА ПОДПИСКИ: Раз в день
+            const savedDate = localStorage.getItem('sub_valid_date');
+            const today = new Date().toDateString();
+
+            if (savedDate === today) return true; // Уже подписался сегодня
+
+            // Если не подписан сегодня - показываем модалку
             pendingVideo = { id: vidId, t: title, s: sub };
             clickedSubLink = false; 
-            const chan = config.requiredChannel;
+            
+            // Выбираем канал для подписки на сегодня
+            const dayIndex = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
+            const currentChannel = opChannels[dayIndex % opChannels.length];
+
             const nameEl = document.getElementById('modal-chan-name');
             const subBtn = document.querySelector('.btn-sub');
-            if (chan.startsWith('http')) { nameEl.innerText = "КАНАЛ ПО ОСД"; subBtn.innerText = "ПОДАТЬ ЗАЯВКУ"; } else { nameEl.innerText = "@" + chan; subBtn.innerText = "ПОДПИСАТЬСЯ"; }
+            
+            // Устанавливаем ссылку на кнопку
+            subBtn.setAttribute('data-link', currentChannel.startsWith('http') ? currentChannel : "https://t.me/" + currentChannel);
+
+            if (currentChannel.startsWith('http')) { 
+                nameEl.innerText = "КАНАЛ ПО ОСД"; 
+                subBtn.innerText = "ПОДАТЬ ЗАЯВКУ"; 
+            } else { 
+                nameEl.innerText = "@" + currentChannel; 
+                subBtn.innerText = "ПОДПИСАТЬСЯ"; 
+            }
+            
             document.getElementById('sub-modal').style.display = 'flex';
             return false;
         }
 
         function doSubscribe() { 
-            vibration(); clickedSubLink = true; userHasClickedSub = true;
-            const chan = config.requiredChannel;
-            if (chan.startsWith('http')) { tg.openTelegramLink(chan); } else { tg.openTelegramLink("https://t.me/" + chan); } 
+            vibration(); 
+            clickedSubLink = true; 
+            const link = document.querySelector('.btn-sub').getAttribute('data-link');
+            tg.openTelegramLink(link);
         }
 
         function checkSubscription() {
             vibration(); 
-            if (!clickedSubLink && !userHasClickedSub) {
+            if (!clickedSubLink) {
                 showToast("Сначала необходимо перейти в канал!");
                 const btn = document.getElementById('check-sub-btn');
                 btn.classList.add('shake'); setTimeout(() => btn.classList.remove('shake'), 500);
                 if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
                 return;
             }
+            
+            // Сохраняем, что на сегодня подписка пройдена
+            localStorage.setItem('sub_valid_date', new Date().toDateString());
+            
             document.getElementById('sub-modal').style.display = 'none';
             if (pendingVideo) { openCinema(pendingVideo.id, pendingVideo.t, pendingVideo.s); pendingVideo = null; }
         }
